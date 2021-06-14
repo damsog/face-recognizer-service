@@ -20,6 +20,7 @@ ap.add_argument("-i", "--input_data", required=True,
 args = vars(ap.parse_args())
 
 input_data = args['input_data']
+#input_data = '{"name":"what","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
 
 def main():
     json_data = json.loads(input_data)
@@ -69,7 +70,12 @@ def main():
             if face is not None:
                 embedding = recognizer.get_embedding(face)
                 #ENCODDING NEED TO BE CONVERTED INTO SOMETHING THAT A DB CAN STORE EASILY
-                embeddings.append( {"img":img_name , "embedding": embedding} )
+                #np.set_printoptions(suppress=True)
+                #embedding_string = np.array2string( embedding[0] )
+                #print(embedding[0])
+                #Creating a list may round the data
+                embeddings.append( {"img":img_name , "embedding": [ num for num in embedding[0] ] } )
+
 
 
             print('File Coded: ', img_name)
