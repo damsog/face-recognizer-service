@@ -1,0 +1,6 @@
+virtualenv
+python-dotenv
+mxnet-cu102
+insightface
+opencv-contrib-python
+imutils
