@@ -18,7 +18,10 @@ from utils import scaller_conc
 
 class encoderExtractor:
     def __init__(self, input_data):
-        self.json_data = json.loads(input_data)
+        if input_data:
+            self.json_data = json.loads(input_data)
+        else:
+            self.json_data = None
 
         #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
         self.model = insightface.model_zoo.get_model('retinaface_r50_v1')
@@ -29,11 +32,17 @@ class encoderExtractor:
         self.recognizer.prepare(ctx_id = 0)
 
         self.json_output = {}
-        self.json_output['name'] = self.json_data['name']
+
+        if self.json_data:
+            self.json_output['name'] = self.json_data['name']
         self.json_output['embeddings'] = []
 
     def set_input_data(self, input_data):
         self.json_data = json.loads(input_data)
+
+        self.json_output = {}
+        self.json_output['name'] = self.json_data['name']
+        self.json_output['embeddings'] = []
     
     def get_input_data(self):
         return self.json_data
@@ -42,6 +51,10 @@ class encoderExtractor:
         return self.json_output
         
     def process_data(self):
+
+        if not self.json_data:
+            print("Data empty. please set the data")
+            return "{}"
 
         self.json_output = {}
         self.json_output['name'] = self.json_data['name']
