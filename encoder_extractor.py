@@ -1,4 +1,5 @@
 import argparse
+import base64
 import json
 import imutils
 import insightface
@@ -10,7 +11,7 @@ from utils import scaller_conc
 
 #This script  gets the embedding of a set of images.
 #Receives a json containing the path to siad images as input.
-#{"name":"what","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}
+#{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}
 #Returns a json containing the embedding of each image to be stored or processed.
 #This script can be called from terminal. 
 #: Create a another python script to test this script independenly
@@ -49,6 +50,18 @@ class encoderExtractor:
 
     def get_output_data(self):
         return self.json_output
+    
+    def read_img(self, img_source, format="route"):
+        if format=="route":
+            img = cv2.imread(img_source)
+        elif format=="b64":
+            nparr = np.frombuffer( base64.b64decode(img_source) , np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        else:
+            print("Format not understood")
+            img = None
+
+        return img
         
     def process_data(self):
 
@@ -64,7 +77,7 @@ class encoderExtractor:
         WIDTHDIVIDER = 4
 
         for img_name in self.json_data['imgs']:
-            img = cv2.imread(img_name)
+            img = self.read_img( img_name, self.json_data["img_format"] )
             img = imutils.resize(img, width=int(img.shape[1]/WIDTHDIVIDER))
 
             bboxs, _ = self.model.detect(img, threshold=0.5, scale=1.0)
@@ -116,7 +129,7 @@ if __name__ == "__main__":
 
     input_data = args['input_data']
     PRINT_OUTPUT = args['print']
-    #input_data = '{"name":"what","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
+    #input_data = '{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
 
     encoder = encoderExtractor(input_data)
     result = encoder.process_data()
