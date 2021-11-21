@@ -41,7 +41,7 @@ def encode_images():
     encoder.set_input_data( str(request.get_json("imgs")).replace("'",'"') )
     result = encoder.process_data()
     
-    return str(result)
+    return str(result).replace("'",'"')
 
 @app.route('/compare_to_dataset', methods=['POST'])
 def compare_to_dataset():
