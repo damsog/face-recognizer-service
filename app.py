@@ -1,17 +1,20 @@
-from flask import Flask, Request, Response
-import json, os, time
-from uuid import uuid4
-
-from flask.globals import request
 import encoder_extractor
+import json, os, time
+from flask import Flask, Request, Response
+from uuid import uuid4
+from flask.globals import request
+from dotenv import load_dotenv, find_dotenv
+
+#initializations
+load_dotenv(find_dotenv())
 
 # Some definitions
 NET = None
 METADATA = None
 MAX_SIMULTANEOUS_PROCESSES = 1
 NUM_SESSIONS = 0
-HOST = "0.0.0.0"
-PORT = "3000"
+HOST = os.environ.get("SERVER_IP")
+PORT = os.environ.get("SERVER_PORT")
 
 
 # Creating our server
