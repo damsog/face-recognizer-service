@@ -16,7 +16,6 @@ from utils import scaller_conc
 #This script can be called from terminal. 
 #: Create a another python script to test this script independenly
 
-
 class encoderExtractor:
     def __init__(self, input_data):
         if input_data:
@@ -121,7 +120,7 @@ class encoderExtractor:
         
         return self.json_output
 
-if __name__ == "__main__":
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--input_data", required=True, help="json containing input data")
     ap.add_argument("-p", "--print", required=False, help="Prints output on console", default=True)
@@ -138,3 +137,6 @@ if __name__ == "__main__":
         print("[OUTPUT:BEGIN]")
         print(result)
         print("[OUTPUT:END]")
+        
+if __name__ == "__main__":
+    main()
