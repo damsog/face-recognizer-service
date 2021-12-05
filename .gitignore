@@ -5,3 +5,4 @@ imgs/*
 !imgs/.gitkeep
 .env
 config_info
+node_modules/
