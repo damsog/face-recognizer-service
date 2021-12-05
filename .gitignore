@@ -1,4 +1,5 @@
 __pycache__/*
+videoAnalytics/__pycache__/*
 *.pyc
 .pylintrc
 imgs/*
