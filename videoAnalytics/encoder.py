@@ -21,21 +21,13 @@ from videoAnalytics.utils import scaller_conc
 #: Create a another python script to test this script independenly
 
 class encoderExtractor:
-    def __init__(self, input_data, model, recognizer):
+    def __init__(self, input_data, detector, recognizer):
         if input_data:
             self.json_data = json.loads(input_data)
         else:
             self.json_data = None
 
-        #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
-        #self.model = insightface.model_zoo.get_model('retinaface_r50_v1')
-        #self.model.prepare(ctx_id = 0, nms=0.4)
-
-        #loading the face recognition model. 0 means to work with GPU. -1 is for CPU.
-        #self.recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
-        #self.recognizer.prepare(ctx_id = 0)
-
-        self.model = model
+        self.detector = detector
         self.recognizer = recognizer
 
         self.json_output = {}
@@ -86,7 +78,7 @@ class encoderExtractor:
             img = self.read_img( img_name, self.json_data["img_format"] )
             img = imutils.resize(img, width=int(img.shape[1]/WIDTHDIVIDER))
 
-            bboxs, _ = self.model.detect(img, threshold=0.5, scale=1.0)
+            bboxs, _ = self.detector.detect(img, threshold=0.5, scale=1.0)
 
             if( bboxs is not None):
                 todel = []
