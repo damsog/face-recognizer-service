@@ -21,6 +21,26 @@ def find_match(data, stored_data, thresh = 0.2):
     matches = np.argmax(similarity, axis = 1)
     return matches
 
+def true_match(data, stored_data,nnames, unames, thresh = 0.4):
+    
+    names = nnames.copy()
+    names.remove('Uknown')
+    matches_t = find_match(data, stored_data, thresh)
+
+    names = np.asarray(names)
+    #unique_names = np.unique(names)
+    unique_names = unames
+    t_match = np.ones( (matches_t.shape[0], 1) )
+
+    for name in unique_names:
+        un_ind = np.where(names == name)[0]
+        nmax,nmin = np.max(un_ind),np.min(un_ind)
+        name_matches = matches_t[:,nmin:nmax + 1]
+        t_match = np.column_stack(( t_match,np.sum(name_matches,axis=1)[:,None]))
+    
+    r_match = np.argmax(t_match, axis= 1)
+
+
 def scaller_dist(img):
     dim = (112,112)
     resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
