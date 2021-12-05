@@ -4,8 +4,12 @@ import json
 import imutils
 import insightface
 import cv2
-from mxnet.base import _NullType
+import sys
 import numpy as np
+from mxnet.base import _NullType
+from pathlib import Path
+path_root = Path(__file__).parents[1]
+sys.path.append(str(path_root))
 from videoAnalytics.utils import scaller_conc
 
 

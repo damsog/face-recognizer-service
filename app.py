@@ -1,5 +1,8 @@
+import json
+import os
+import time
+import insightface
 from videoAnalytics.encoder import encoderExtractor
-import json, os, time, insightface
 from flask import Flask, Request, Response
 from uuid import uuid4
 from flask.globals import request
