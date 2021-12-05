@@ -17,19 +17,22 @@ from utils import scaller_conc
 #: Create a another python script to test this script independenly
 
 class encoderExtractor:
-    def __init__(self, input_data):
+    def __init__(self, input_data, model, recognizer):
         if input_data:
             self.json_data = json.loads(input_data)
         else:
             self.json_data = None
 
         #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
-        self.model = insightface.model_zoo.get_model('retinaface_r50_v1')
-        self.model.prepare(ctx_id = 0, nms=0.4)
+        #self.model = insightface.model_zoo.get_model('retinaface_r50_v1')
+        #self.model.prepare(ctx_id = 0, nms=0.4)
 
         #loading the face recognition model. 0 means to work with GPU. -1 is for CPU.
-        self.recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
-        self.recognizer.prepare(ctx_id = 0)
+        #self.recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
+        #self.recognizer.prepare(ctx_id = 0)
+
+        self.model = model
+        self.recognizer = recognizer
 
         self.json_output = {}
 
@@ -130,7 +133,15 @@ def main() -> None:
     PRINT_OUTPUT = args['print']
     #input_data = '{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
 
-    encoder = encoderExtractor(input_data)
+    #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
+    model = insightface.model_zoo.get_model('retinaface_r50_v1')
+    model.prepare(ctx_id = 0, nms=0.4)
+
+    #loading the face recognition model. 0 means to work with GPU. -1 is for CPU.
+    recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
+    recognizer.prepare(ctx_id = 0)
+
+    encoder = encoderExtractor(input_data, model, recognizer)
     result = encoder.process_data()
 
     if PRINT_OUTPUT:
