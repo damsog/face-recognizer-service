@@ -1,4 +1,4 @@
-import encoder_extractor
+from videoAnalytics.encoder import encoderExtractor
 import json, os, time, insightface
 from flask import Flask, Request, Response
 from uuid import uuid4
@@ -31,7 +31,7 @@ def main():
     recognizer.prepare(ctx_id = 0)
 
     # Creating our face detection and recognition sistem.
-    encoder = encoder_extractor.encoderExtractor(None, detector, recognizer)
+    encoder = encoderExtractor(None, detector, recognizer)
 
     #======================================================Requests============================================================
     @app.route('/load_models', methods=['GET'])
