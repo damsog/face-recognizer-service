@@ -10,15 +10,18 @@ def compare_embeddings(emb1t, emb2t):
 
 #def compare_faces(data_emb, emb):
 
-def find_match(data, stored_data, thresh = 0.2):
+def find_match(data, stored_data, thresh = 0.5):
     ldata = np.linalg.norm(data, axis=1)[None].T
     lstored = np.linalg.norm(stored_data, axis=1)[None].T
     num = np.dot(data, stored_data.T)
     den = np.dot(ldata, lstored.T)
     similarity = num/den
-    thresh_vec = np.zeros( (similarity.shape[0],1) ) + thresh
-    similarity = np.column_stack(( thresh_vec,similarity ))
-    matches = np.argmax(similarity, axis = 1)
+    #thresh_vec = np.zeros( (similarity.shape[0],1) ) + thresh
+    #similarity = np.column_stack(( thresh_vec,similarity ))
+    #matches = np.argmax(similarity, axis = 1)
+    #--V2--
+    matches = np.where(similarity>thresh, True, False)
+
     return matches
 
 def true_match(data, stored_data,nnames, unames, thresh = 0.4):
@@ -40,6 +43,7 @@ def true_match(data, stored_data,nnames, unames, thresh = 0.4):
     
     r_match = np.argmax(t_match, axis= 1)
 
+    return r_match
 
 def scaller_dist(img):
     dim = (112,112)
