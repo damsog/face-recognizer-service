@@ -76,12 +76,18 @@ class faceAnalyzer:
 
     def get_output_data(self):
         return self.json_output
+    
+    def img2b64(self, img):
+        retval, buffer = cv2.imencode('.jpg', img)
+        jpg_as_text = base64.b64encode(buffer)
+        return jpg_as_text
         
-    def process_img(self, img, return_img=False, return_landmarks=False):
+    def process_img(self, img, return_img=False, return_landmarks=False, return_img_json=False):
 
         # Initializations
         self.img = img
         self.json_output = {}
+        output_array = []
         faces = []
         embeddings = []
         WIDTHDIVIDER = 1
@@ -123,22 +129,29 @@ class faceAnalyzer:
                         embeddings = np.row_stack(( embeddings,self.recognizer.get_embedding(face)  ))
                 embeddings = np.delete(embeddings, 0 , 0 )
 
+                
                 # Now process the embeddings for each face to find matches
                 if(embeddings is not None):
                     # TODO: Check the true match function which is working kind of weird for profiles with few images
                     matches = true_match(embeddings,self.dataset_embeddings, self.dataset_names, self.dataset_unames, 0.3)  #0.5
-                    print(self.labels, matches)
-                    indx = 0    
-                    for bbox in bboxs:
+                    
+                    # Generating final output. iterating through the faces and getting their info
+                    for indx, (bbox, landmark) in enumerate(zip(bboxs, landmarks)):
+                        face_json = { "label" : self.labels[matches[indx]], "bbox" : bbox }
+                        if return_landmarks:
+                            face_json["landmarks"] = landmark
                         cv2.putText(img, self.labels[matches[indx]], (int(bbox[0]),int(bbox[1])),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-                        indx += 1
-        # Just for debugging. show image
-        cv2.imshow('image1', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows() 
+                        output_array.append(face_json)
+        
+        # Output Json
+        self.json_output = { "faces" : output_array }
+        if return_img_json:
+            self.json_output["img_b64"] = self.img2b64(img)
 
-                        
-        return self.json_output
+        if return_img:
+            return self.json_output, img
+        else:
+            return self.json_output
 
 def main() -> None:
     ap = argparse.ArgumentParser()
@@ -171,7 +184,24 @@ def main() -> None:
     recognizer.prepare(ctx_id = 0)
 
     analyzer = faceAnalyzer(detector, recognizer, dataset_path)
-    analyzer.process_img(input_img)
+    result,img = analyzer.process_img(input_img, return_img=True)
+
+    cv2.imshow('image', img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    # Video Test
+    while cap.isOpened():
+        ret, img_read = cap.read()
+        result,img = analyzer.process_img(img_read, return_img=True)
+        print(result)
+
+        cv2.namedWindow('Frame')
+        cv2.imshow('Frame', img)
+
+        fin = cv2.waitKey(1) & 0xFF
+        if(fin == ord('q')):
+            break
         
 if __name__=="__main__":
     main()
