@@ -157,7 +157,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--image", required=False, help="Reads an image from path. If not given, opens camera")
     ap.add_argument("-d", "--dataset", required=True, help="path to the dataset json file containing refference info")
-    ap.add_argument("-p", "--print", required=False, help="Prints output on console", default=True)
+    ap.add_argument("-p", "--show", required=False, help="Prints output on console and shows image result", default=True)
+    ap.add_argument("-t", "--video_test", required=False, help="If selected, opens camera to live test", default=False)
     args = vars(ap.parse_args())
 
     # Getting input image. -i to get it from path. else get it from camera
@@ -169,10 +170,7 @@ def main() -> None:
         pass
     
     dataset_path = args["dataset"]
-    # Just for debugging. show image
-    cv2.imshow('image', input_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
     #input_img = cv2.imread('/media/felipe/Otros/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
@@ -185,23 +183,24 @@ def main() -> None:
 
     analyzer = faceAnalyzer(detector, recognizer, dataset_path)
     result,img = analyzer.process_img(input_img, return_img=True)
+    if args["show"]:
+        cv2.imshow('image', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-    cv2.imshow('image', img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Video Testing if option selected. stop it pressing q
+    if args["video_test"] == "true":
+        while cap.isOpened():
+            ret, img_read = cap.read()
+            result,img = analyzer.process_img(img_read, return_img=True)
+            print(result)
 
-    # Video Test
-    while cap.isOpened():
-        ret, img_read = cap.read()
-        result,img = analyzer.process_img(img_read, return_img=True)
-        print(result)
+            cv2.namedWindow('Frame')
+            cv2.imshow('Frame', img)
 
-        cv2.namedWindow('Frame')
-        cv2.imshow('Frame', img)
-
-        fin = cv2.waitKey(1) & 0xFF
-        if(fin == ord('q')):
-            break
+            fin = cv2.waitKey(1) & 0xFF
+            if(fin == ord('q')):
+                break
         
 if __name__=="__main__":
     main()
