@@ -53,7 +53,8 @@ class faceAnalyzer:
         embeddings_array = np.delete(embeddings_array , 0, 0)
 
         # getting uniques
-        self.dataset_unames = np.unique(np.asarray(names_list)).tolist()
+        _,idx = np.unique(np.asarray(names_list), return_index=True)
+        self.dataset_unames = np.asarray(names_list)[np.sort(idx)]
 
         names_list = ['Uknown'] + names_list
         return embeddings_array, names_list
@@ -172,6 +173,7 @@ def main() -> None:
     dataset_path = args["dataset"]
 
     #input_img = cv2.imread('/media/felipe/Otros/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
+    #-d '/media/felipe/Otros/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t true
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
     detector = insightface.model_zoo.get_model('retinaface_r50_v1')
