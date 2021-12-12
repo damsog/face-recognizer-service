@@ -26,12 +26,15 @@ class faceAnalyzer:
         self.recognizer = recognizer
         self.json_output = {}
 
-        # Reading Dataset embeddings
-        self.dataset_embeddings, self.dataset_names = self.parse_dataset_json(self.dataset_path)
+        if dataset_path:
+            # Reading Dataset embeddings
+            self.dataset_embeddings, self.dataset_names = self.parse_dataset_json(self.dataset_path)
 
-        # getting labels
-        _,idx = np.unique(np.asarray(self.dataset_names), return_index=True)
-        self.labels = np.asarray(self.dataset_names)[np.sort(idx)]
+            # getting labels
+            _,idx = np.unique(np.asarray(self.dataset_names), return_index=True)
+            self.labels = np.asarray(self.dataset_names)[np.sort(idx)]
+        else:
+            self.dataset_embeddings, self.dataset_names, self.labels, self.dataset_unames = None, None, None, None
     
 
     # this method reads the json which containes the codes for a dataset and
@@ -190,7 +193,7 @@ def main() -> None:
     recognizer.prepare(ctx_id = 0)
 
     analyzer = faceAnalyzer(detector, recognizer, dataset_path)
-    result,img = analyzer.process_img(input_img, return_img=True)
+    result,img = analyzer.analyze_img(input_img, return_img=True)
     if args["show"]:
         cv2.imshow('image', img)
         cv2.waitKey(0)
@@ -200,7 +203,7 @@ def main() -> None:
     if args["video_test"] == "true":
         while cap.isOpened():
             ret, img_read = cap.read()
-            result,img = analyzer.process_img(img_read, return_img=True)
+            result,img = analyzer.analyze_img(img_read, return_img=True)
             print(result)
 
             cv2.namedWindow('Frame')
