@@ -67,13 +67,19 @@ class faceAnalyzer:
 
     def set_dataset(self, dataset_path):
         self.dataset_path = dataset_path
-        self.dataset = self.parse_dataset_json(self.dataset_path)
+
+        # Reading Dataset embeddings
+        self.dataset_embeddings, self.dataset_names = self.parse_dataset_json(self.dataset_path)
+
+        # getting labels
+        _,idx = np.unique(np.asarray(self.dataset_names), return_index=True)
+        self.labels = np.asarray(self.dataset_names)[np.sort(idx)]
     
     def get_dataset_path(self):
         return self.dataset_path
     
     def get_dataset(self):
-        return self.dataset
+        return self.dataset_embeddings, self.dataset_names, self.labels
 
     def get_output_data(self):
         return self.json_output
@@ -83,7 +89,7 @@ class faceAnalyzer:
         jpg_as_text = base64.b64encode(buffer)
         return jpg_as_text
         
-    def process_img(self, img, return_img=False, return_landmarks=False, return_img_json=False):
+    def analyze_img(self, img, return_img=False, return_landmarks=False, return_img_json=False):
 
         # Initializations
         self.img = img
