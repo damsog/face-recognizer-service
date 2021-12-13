@@ -2,11 +2,11 @@ import json
 import os
 import time
 import insightface
-from videoAnalytics.encoder import encoderExtractor
 from flask import Flask, Request, Response
 from uuid import uuid4
 from flask.globals import request
 from dotenv import load_dotenv, find_dotenv
+from videoAnalytics.processor import processor
 
 
 def main():
@@ -25,16 +25,7 @@ def main():
     # Creating our server
     app = Flask(__name__)
 
-    #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
-    detector = insightface.model_zoo.get_model('retinaface_r50_v1')
-    detector.prepare(ctx_id = 0, nms=0.4)
-
-    #loading the face recognition model. 0 means to work with GPU. -1 is for CPU.
-    recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
-    recognizer.prepare(ctx_id = 0)
-
-    # Creating our face detection and recognition sistem.
-    encoder = encoderExtractor(None, detector, recognizer)
+    mProcessor = processor()
 
     #======================================================Requests============================================================
     @app.route('/load_models', methods=['GET'])
@@ -53,15 +44,15 @@ def main():
     def encode_images():
         result = "0"
         print("encode_images")
-        encoder.set_input_data( str(request.get_json("imgs")).replace("'",'"') )
-        result = encoder.process_data()
-        
+        result = mProcessor.encode_images( str(request.get_json("imgs")).replace("'",'"') )
         return str(result).replace("'",'"')
 
-    @app.route('/compare_to_dataset', methods=['POST'])
-    def compare_to_dataset():
+    @app.route('/analyze_image', methods=['POST'])
+    def analyze_image():
         result = "0"
-        print("compare_to_dataset")
+        print("analyze_image")
+        #mProcessor.analyze_image(request.get_json("imgs"))
+        print(request.get_json())
         return result
 
     @app.route('/start_live_analytics', methods=['GET'])
