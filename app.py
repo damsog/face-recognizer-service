@@ -52,8 +52,14 @@ def main():
         result = "0"
         print("analyze_image")
         #mProcessor.analyze_image(request.get_json("imgs"))
-        print(request.get_json())
-        return result
+        datajson = request.get_json()
+        return_img_json = True if datajson["return_img"]==1 else False
+        dataset_path = datajson["dataset_path"]
+        img_b64 =  datajson["img"]
+
+        result = mProcessor.analyze_image(dataset_path,mProcessor.b642cv2( img_b64 ),return_img_json=return_img_json)
+        
+        return str(result)
 
     @app.route('/start_live_analytics', methods=['GET'])
     def start_live_analytics():
