@@ -163,13 +163,37 @@ class faceAnalyzer:
         else:
             return self.json_output
 
+    def detect_img(self, img, return_img=False, return_landmarks=False, return_img_json=False):
+
+        # Initializations
+        self.img = img
+        self.json_output = {}
+        output_array = []
+        faces = []
+        embeddings = []
+        WIDTHDIVIDER = 1
+
+        img = imutils.resize(img, width=int(img.shape[1]/WIDTHDIVIDER))
+        bboxs, landmarks = self.detector.detect(img, threshold=0.5, scale=1.0)
+
+        if return_img:
+            return self.json_output, img
+        else:
+            return self.json_output
+
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("type", choices=["detection", "recognition"], help="Select detection for Plain FaceDet and Recognition for FaceDetection and Recognition.")
     ap.add_argument("-i", "--image", required=False, help="Reads an image from path. If not given, opens camera")
-    ap.add_argument("-d", "--dataset", required=True, help="path to the dataset json file containing refference info")
-    ap.add_argument("-p", "--show", required=False, help="Prints output on console and shows image result", default=True)
-    ap.add_argument("-t", "--video_test", required=False, help="If selected, opens camera to live test", default=False)
+    ap.add_argument("-d", "--dataset", required=False, help="path to the dataset json file containing refference info")
+    ap.add_argument("-p", "--print_output", action="store_true", help="Prints output on console and shows image result")
+    ap.add_argument("-t", "--video_test", action="store_true", help="If selected, opens camera to live test")
     args = vars(ap.parse_args())
+
+    if not args["dataset"]:
+       if args["type"] == "recognition":
+           print("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
+           sys.exit()
 
     # Getting input image. -i to get it from path. else get it from camera
     if args["image"]:
@@ -182,7 +206,7 @@ def main() -> None:
     dataset_path = args["dataset"]
 
     #input_img = cv2.imread('/media/felipe/Otros/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
-    #-d '/media/felipe/Otros/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t true
+    #-d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t true
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
     detector = insightface.model_zoo.get_model('retinaface_r50_v1')
@@ -193,18 +217,30 @@ def main() -> None:
     recognizer.prepare(ctx_id = 0)
 
     analyzer = faceAnalyzer(detector, recognizer, dataset_path)
-    result,img = analyzer.analyze_img(input_img, return_img=True)
-    if args["show"]:
-        cv2.imshow('image', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+    if args["type"] == "recognition":
+        result,img = analyzer.analyze_img(input_img, return_img=True)
+        if args["print_output"]:
+            cv2.imshow('image', img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+    else:
+        result,img = analyzer.detect_img(input_img, return_img=True)
+        if args["print_output"]:
+            cv2.imshow('image', img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
     # Video Testing if option selected. stop it pressing q
-    if args["video_test"] == "true":
+    if args["video_test"]:
         while cap.isOpened():
             ret, img_read = cap.read()
-            result,img = analyzer.analyze_img(img_read, return_img=True)
-            print(result)
+            
+            if args["type"]=="recognition":
+                result,img = analyzer.analyze_img(img_read, return_img=True)
+            else:
+                result,img = analyzer.detect_img(img_read, return_img=True)
+            if args["print_output"]:
+                print(result)
 
             cv2.namedWindow('Frame')
             cv2.imshow('Frame', img)
