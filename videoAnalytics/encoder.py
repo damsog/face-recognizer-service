@@ -122,11 +122,10 @@ class encoderExtractor:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--input_data", required=True, help="json containing input data")
-    ap.add_argument("-p", "--print", required=False, help="Prints output on console", default=True)
+    ap.add_argument("-p", "--print", action="store_true", help="Prints output on console")
     args = vars(ap.parse_args())
 
     input_data = args['input_data']
-    PRINT_OUTPUT = args['print']
     #input_data = '{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
@@ -140,7 +139,7 @@ def main() -> None:
     encoder = encoderExtractor(input_data, detector, recognizer)
     result = encoder.process_data()
 
-    if PRINT_OUTPUT:
+    if args['print']:
         print("[OUTPUT:BEGIN]")
         print(result)
         print("[OUTPUT:END]")
