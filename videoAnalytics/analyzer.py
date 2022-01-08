@@ -168,13 +168,20 @@ class faceAnalyzer:
         # Initializations
         self.img = img
         self.json_output = {}
-        output_array = []
-        faces = []
-        embeddings = []
         WIDTHDIVIDER = 1
 
         img = imutils.resize(img, width=int(img.shape[1]/WIDTHDIVIDER))
         bboxs, landmarks = self.detector.detect(img, threshold=0.5, scale=1.0)
+        if( bboxs is not None):
+
+            # Processing the faces detected. Drawing the bboxes, landmarks and cutting the faces
+            # TODO: Extract this as a function
+            for bbox, landmark in zip(bboxs, landmarks):
+                # Drawing the bboxes
+                cv2.rectangle(img, (int(bbox[0]),int(bbox[1])), (int(bbox[2]),int(bbox[3])), (0, 255, 0), 1)
+                # Drawing landmarks
+                for cord in landmark:
+                    cv2.circle(img, (int(cord[0]),int(cord[1])), 3, (0, 0, 255), -1)
 
         if return_img:
             return self.json_output, img
