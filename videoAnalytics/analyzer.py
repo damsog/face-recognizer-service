@@ -5,6 +5,7 @@ import imutils
 import insightface
 import cv2
 import sys
+import logging
 import numpy as np
 from mxnet.base import _NullType
 from pathlib import Path
@@ -205,13 +206,24 @@ def main() -> None:
     ap.add_argument("type", choices=["detection", "recognition"], help="Select detection for Plain FaceDet and Recognition for FaceDetection and Recognition.")
     ap.add_argument("-i", "--image", required=False, help="Reads an image from path. If not given, opens camera")
     ap.add_argument("-d", "--dataset", required=False, help="path to the dataset json file containing refference info")
-    ap.add_argument("-p", "--print_output", action="store_true", help="Prints output on console and shows image result")
     ap.add_argument("-t", "--video_test", action="store_true", help="If selected, opens camera to live test")
+    ap.add_argument("-v", "--verbose", action="store_true", help="Debug level for logger output")
+    ap.add_argument("-s", "--show_img", action="store_true", help="Shows image output")
     args = vars(ap.parse_args())
+
+    # Logger Configuration
+    logger = logging.getLogger(__name__)
+    logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
+    logger_date_format = '[%Y/%m/%d %H:%M:%S]'
+
+    if args["verbose"]:
+        logging.basicConfig(level=logging.DEBUG, format=logger_format, datefmt=logger_date_format)
+    else:
+        logging.basicConfig(level=logging.INFO,  format=logger_format, datefmt=logger_date_format)
 
     if not args["dataset"]:
        if args["type"] == "recognition":
-           print("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
+           logger.info("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
            sys.exit()
 
     # Getting input image. -i to get it from path. else get it from camera
@@ -228,29 +240,40 @@ def main() -> None:
     #-d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t true
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
+    face_detection_model = 'retinaface_r50_v1'
+    face_recognition_model = 'arcface_r100_v1'
+
+    logger.info(f'Loading face detection model {face_detection_model}')
     detector = insightface.model_zoo.get_model('retinaface_r50_v1')
     detector.prepare(ctx_id = 0, nms=0.4)
 
+    if args["type"]== "recognition":
     #loading the face recognition model. 0 means to work with GPU. -1 is for CPU.
-    recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
-    recognizer.prepare(ctx_id = 0)
+        logger.info('Face recognition Selected')
+        logger.info(f'Loading face detection model {face_recognition_model}')
+        recognizer = insightface.model_zoo.get_model('arcface_r100_v1')
+        recognizer.prepare(ctx_id = 0)
+    else:
+        recognizer =None
+        logger.info('Plain Face Detection selected')
 
     analyzer = faceAnalyzer(detector, recognizer, dataset_path)
     if args["type"] == "recognition":
         result,img = analyzer.analyze_img(input_img, return_img=True)
-        if args["print_output"]:
+        if args["show_img"]:
             cv2.imshow('image', img)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
     else:
         result,img = analyzer.detect_img(input_img, return_img=True)
-        if args["print_output"]:
+        if args["show_img"]:
             cv2.imshow('image', img)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
     # Video Testing if option selected. stop it pressing q
     if args["video_test"]:
+        logger.info("Starting video test")
         while cap.isOpened():
             ret, img_read = cap.read()
             
@@ -258,14 +281,15 @@ def main() -> None:
                 result,img = analyzer.analyze_img(img_read, return_img=True)
             else:
                 result,img = analyzer.detect_img(img_read, return_img=True)
-            if args["print_output"]:
-                print(result)
+            
+            logger.debug(result)
 
             cv2.namedWindow('Frame')
             cv2.imshow('Frame', img)
 
             fin = cv2.waitKey(1) & 0xFF
             if(fin == ord('q')):
+                logger.info("Terminate key pressed. Closing program")
                 break
         
 if __name__=="__main__":
