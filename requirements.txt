@@ -1,8 +1,13 @@
 virtualenv
 python-dotenv
-mxnet-cu102
+mxnet-cu102==1.7.0
 cython
 opencv-contrib-python
 onnxruntime
-insightface
+insightface==0.1.5
 imutils
+uuid
+av
+aiortc
+flask
+"Flask[async]"
