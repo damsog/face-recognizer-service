@@ -1,8 +1,5 @@
 import json
 import os
-import time
-import insightface
-from flask import Flask, Request, Response
 from uuid import uuid4
 from flask.globals import request
 from dotenv import load_dotenv, find_dotenv
@@ -13,6 +10,7 @@ import asyncio
 from av import VideoFrame
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
+import ssl
 import uuid
 import logging
 
@@ -64,7 +62,8 @@ def main():
     NUM_SESSIONS = 0
     HOST = os.environ.get("SERVER_IP")
     PORT = os.environ.get("SERVER_PORT")
-
+    SSL_CONTEXT = os.environ.get("SERVER_SSL_CONTEXT")
+    SSL_KEYFILE = os.environ.get("SERVER_SSL_KEYFILE")
     ROOT = os.path.dirname(__file__)
 
     mProcessor = processor()
@@ -120,7 +119,6 @@ def main():
         log_info("Created for %s", request.remote)
         
         # prepare local media
-        #player = MediaPlayer(os.path.join(ROOT, "demo-instruct.wav"))
         record = False
         if record:
             recorder = MediaRecorder("args.record_to")
@@ -189,11 +187,11 @@ def main():
 
     #======================================================Start the Server====================================================
 
-    #if args.cert_file:
-    #    ssl_context = ssl.SSLContext()
-    #    ssl_context.load_cert_chain(args.cert_file, args.key_file)
-    #else:
-    ssl_context = None
+    if SSL_CONTEXT:
+        ssl_context = ssl.SSLContext()
+        ssl_context.load_cert_chain(SSL_CONTEXT, SSL_KEYFILE)
+    else:
+        ssl_context = None
 
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
