@@ -157,10 +157,6 @@ def main():
         # send answer
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
-
-        print(json.dumps(
-                {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
-            ))
         
         return web.Response(
             content_type="application/json",
