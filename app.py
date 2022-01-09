@@ -65,12 +65,18 @@ def main():
     SSL_CONTEXT = os.environ.get("SERVER_SSL_CONTEXT")
     SSL_KEYFILE = os.environ.get("SERVER_SSL_KEYFILE")
     ROOT = os.path.dirname(__file__)
+    LOGGER_LEVEL = None
 
     mProcessor = processor()
 
-    logger = logging.getLogger("pc")
+    logger = logging.getLogger(__name__)
+    logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
+    logger_date_format = '[%Y/%m/%d %H:%M:%S]'
 
-    logging.basicConfig(level=logging.INFO)
+    if LOGGER_LEVEL == "verbose":
+        logging.basicConfig(level=logging.DEBUG, format=logger_format, datefmt=logger_date_format)
+    else:
+        logging.basicConfig(level=logging.INFO,  format=logger_format, datefmt=logger_date_format)
 
     pcs = set()
     relay = MediaRelay()
@@ -78,23 +84,23 @@ def main():
     #======================================================Requests============================================================
     async def load_models():
         result = "0"
-        print("load_models")
+        logger.info("load_models")
         return result
 
     async def unload_models():
         result = "0"
-        print("unload_models")
+        logger.info("unload_models")
         return result
 
     async def encode_images():
         result = "0"
-        print("encode_images")
+        logger.info("encode_images")
         result = mProcessor.encode_images( str(request.get_json("imgs")).replace("'",'"') )
         return str(result).replace("'",'"')
 
     async def analyze_image(request):
         result = "0"
-        print("analyze_image")
+        logger.info("analyze_image")
         #mProcessor.analyze_image(request.get_json("imgs"))
         datajson = await request.json()
         return_img_json = True if datajson["return_img"]==1 else False
@@ -167,12 +173,12 @@ def main():
 
     async def start_live_analytics():
         result = "0"
-        print("start_live_analytics")
+        logger.info("start_live_analytics")
         return result
 
     async def stop_live_analytics():
         result = 0
-        print("stop_live_analytics")
+        logger.info("stop_live_analytics")
         return result
     
     async def on_shutdown(app):
