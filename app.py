@@ -8,6 +8,39 @@ from flask.globals import request
 from dotenv import load_dotenv, find_dotenv
 from videoAnalytics.processor import processor
 
+from av import VideoFrame
+from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
+from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
+import uuid
+import logging
+
+class VideoProcessorTrack(MediaStreamTrack):
+    """
+    A video stream track that transforms frames from an another track.
+    """
+
+    kind = "video"
+
+    def __init__(self, track, process, processor):
+        super().__init__()  # don't forget this!
+        self.track = track
+        self.process = process
+        self.processor = processor
+
+    async def recv(self):
+        frame = await self.track.recv()
+
+        if self.process == "detect":
+            img = frame.to_ndarray(format="bgr24")
+            #new_frame = self.processor.detect_image(img, return_img=True)
+            
+            return img
+        elif self.process == "analyze":
+            #TODO: handle analyzer
+            img = frame.to_ndarray(format="bgr24")
+            return img
+        else:
+            return frame
 
 def main():
     #initializations
@@ -21,11 +54,15 @@ def main():
     HOST = os.environ.get("SERVER_IP")
     PORT = os.environ.get("SERVER_PORT")
 
+    ROOT = os.path.dirname(__file__)
 
     # Creating our server
     app = Flask(__name__)
-
     mProcessor = processor()
+
+    logger = logging.getLogger("pc")
+    pcs = set()
+    relay = MediaRelay()
 
     #======================================================Requests============================================================
     @app.route('/load_models', methods=['GET'])
@@ -60,6 +97,84 @@ def main():
         result = mProcessor.analyze_image(dataset_path,mProcessor.b642cv2( img_b64 ),return_img_json=return_img_json)
         
         return str(result)
+
+    @app.route('/facedet_stream', methods=['POST'])
+    async def facedet_stream():
+        result = "0"
+        params = request.get_json()
+        #print(params)
+        
+        offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
+
+        pc = RTCPeerConnection()
+        pc_id = "PeerConnection(%s)" % uuid.uuid4()
+        pcs.add(pc)
+
+        def log_info(msg, *args):
+            logger.info(pc_id + " " + msg, *args)
+
+        #log_info("Created for %s", params.remote)
+        
+        # prepare local media
+        player = MediaPlayer(os.path.join(ROOT, "demo-instruct.wav"))
+        record = False
+        if record:
+            recorder = MediaRecorder("args.record_to")
+        else:
+            recorder = MediaBlackhole()
+
+        @pc.on("datachannel")
+        def on_datachannel(channel):
+            @channel.on("message")
+            def on_message(message):
+                if isinstance(message, str) and message.startswith("ping"):
+                    channel.send("pong" + message[4:])
+
+        @pc.on("connectionstatechange")
+        async def on_connectionstatechange():
+            log_info("Connection state is %s", pc.connectionState)
+            if pc.connectionState == "failed":
+                await pc.close()
+                pcs.discard(pc)
+        
+        @pc.on("track")
+        def on_track(track):
+            log_info("Track %s received", track.kind)
+
+            if track.kind == "audio":
+                pc.addTrack(player.audio)
+                recorder.addTrack(track)
+            pc.addTrack(
+                VideoProcessorTrack(
+                    relay.subscribe(track), process="detect", processor=mProcessor
+                )
+            )
+            if record:
+                recorder.addTrack(relay.subscribe(track))
+
+            @track.on("ended")
+            async def on_ended():
+                log_info("Track %s ended", track.kind)
+                await recorder.stop()
+
+        # handle offer
+        await pc.setRemoteDescription(offer)
+        await recorder.start()
+
+            # send answer
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+
+        print(json.dumps(
+                {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+            ))
+        
+        return Response(
+            mimetype="application/json",
+            response=json.dumps(
+                {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+            ),
+        )
 
     @app.route('/start_live_analytics', methods=['GET'])
     def start_live_analytics():
