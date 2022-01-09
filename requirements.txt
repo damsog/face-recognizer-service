@@ -9,5 +9,7 @@ imutils
 uuid
 av
 aiortc
-flask
-"Flask[async]"
+#flask
+#"Flask[async]"
+aiohttp
+asyncio

@@ -8,8 +8,6 @@ from flask.globals import request
 from dotenv import load_dotenv, find_dotenv
 from videoAnalytics.processor import processor
 
-from aiohttp import web
-import asyncio
 from av import VideoFrame
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
@@ -34,24 +32,15 @@ class VideoProcessorTrack(MediaStreamTrack):
 
         if self.process == "detect":
             img = frame.to_ndarray(format="bgr24")
-            _,img = self.processor.detect_image(img, return_img=True)
-            # rebuild a VideoFrame, preserving timing information
-            new_frame = VideoFrame.from_ndarray(img, format="bgr24")
-            new_frame.pts = frame.pts
-            new_frame.time_base = frame.time_base
-            return new_frame
+            #new_frame = self.processor.detect_image(img, return_img=True)
+            
+            return img
         elif self.process == "analyze":
-            #TODO: Dont load the dataset for each image. its making it laggy.
+            #TODO: handle analyzer
             img = frame.to_ndarray(format="bgr24")
-            _,img = self.processor.analyze_image('/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json',img, return_img=True)
-            # rebuild a VideoFrame, preserving timing information
-            new_frame = VideoFrame.from_ndarray(img, format="bgr24")
-            new_frame.pts = frame.pts
-            new_frame.time_base = frame.time_base
-            return new_frame
+            return img
         else:
             return frame
-
 
 def main():
     #initializations
@@ -67,37 +56,42 @@ def main():
 
     ROOT = os.path.dirname(__file__)
 
+    # Creating our server
+    app = Flask(__name__)
     mProcessor = processor()
 
     logger = logging.getLogger("pc")
-
     logging.basicConfig(level=logging.INFO)
 
     pcs = set()
     relay = MediaRelay()
 
     #======================================================Requests============================================================
-    async def load_models():
+    @app.route('/load_models', methods=['GET'])
+    def load_models():
         result = "0"
         print("load_models")
         return result
 
-    async def unload_models():
+    @app.route('/unload_models', methods=['GET'])
+    def unload_models():
         result = "0"
         print("unload_models")
         return result
 
-    async def encode_images():
+    @app.route('/encode_images', methods=['POST'])
+    def encode_images():
         result = "0"
         print("encode_images")
         result = mProcessor.encode_images( str(request.get_json("imgs")).replace("'",'"') )
         return str(result).replace("'",'"')
 
-    async def analyze_image(request):
+    @app.route('/analyze_image', methods=['POST'])
+    def analyze_image():
         result = "0"
         print("analyze_image")
         #mProcessor.analyze_image(request.get_json("imgs"))
-        datajson = await request.json()
+        datajson = request.get_json()
         return_img_json = True if datajson["return_img"]==1 else False
         dataset_path = datajson["dataset_path"]
         img_b64 =  datajson["img"]
@@ -106,8 +100,12 @@ def main():
         
         return str(result)
 
-    async def facedet_stream(request):
-        params = await request.json()
+    @app.route('/facedet_stream', methods=['POST'])
+    async def facedet_stream():
+        result = "0"
+        params = request.get_json()
+        #print(params)
+        
         offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
         pc = RTCPeerConnection()
@@ -117,15 +115,22 @@ def main():
         def log_info(msg, *args):
             logger.info(pc_id + " " + msg, *args)
 
-        log_info("Created for %s", request.remote)
+        #log_info("Created for %s", params.remote)
         
         # prepare local media
-        #player = MediaPlayer(os.path.join(ROOT, "demo-instruct.wav"))
+        player = MediaPlayer(os.path.join(ROOT, "demo-instruct.wav"))
         record = False
         if record:
             recorder = MediaRecorder("args.record_to")
         else:
             recorder = MediaBlackhole()
+
+        @pc.on("datachannel")
+        def on_datachannel(channel):
+            @channel.on("message")
+            def on_message(message):
+                if isinstance(message, str) and message.startswith("ping"):
+                    channel.send("pong" + message[4:])
 
         @pc.on("connectionstatechange")
         async def on_connectionstatechange():
@@ -138,7 +143,10 @@ def main():
         def on_track(track):
             log_info("Track %s received", track.kind)
 
-            if track.kind == "video":
+            if track.kind == "audio":
+                pc.addTrack(player.audio)
+                recorder.addTrack(track)
+            elif track.kind == "video":
                 pc.addTrack(
                     VideoProcessorTrack(
                         relay.subscribe(track), process="detect", processor=mProcessor
@@ -156,7 +164,7 @@ def main():
         await pc.setRemoteDescription(offer)
         await recorder.start()
 
-        # send answer
+            # send answer
         answer = await pc.createAnswer()
         await pc.setLocalDescription(answer)
 
@@ -164,49 +172,27 @@ def main():
                 {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
             ))
         
-        return web.Response(
-            content_type="application/json",
-            text=json.dumps(
+        return Response(
+            mimetype="application/json",
+            response=json.dumps(
                 {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
             ),
         )
 
-    async def start_live_analytics():
+    @app.route('/start_live_analytics', methods=['GET'])
+    def start_live_analytics():
         result = "0"
         print("start_live_analytics")
         return result
 
-    async def stop_live_analytics():
+    @app.route('/stop_live_analytics', methods=['GET'])
+    def stop_live_analytics():
         result = 0
         print("stop_live_analytics")
         return result
-    
-    async def on_shutdown(app):
-        # close peer connections
-        coros = [pc.close() for pc in pcs]
-        await asyncio.gather(*coros)
-        pcs.clear()
 
     #======================================================Start the Server====================================================
-
-    #if args.cert_file:
-    #    ssl_context = ssl.SSLContext()
-    #    ssl_context.load_cert_chain(args.cert_file, args.key_file)
-    #else:
-    ssl_context = None
-
-    app = web.Application()
-    app.on_shutdown.append(on_shutdown)
-    app.router.add_get('/load_models', load_models)
-    app.router.add_get('/start_live_analytics', start_live_analytics)
-    app.router.add_post('/facedet_stream', facedet_stream)
-    app.router.add_get('/stop_live_analytics', stop_live_analytics)
-    app.router.add_post('/analyze_image', analyze_image)
-    app.router.add_get('/unload_models', unload_models)
-    app.router.add_post('/encode_images', encode_images)
-    web.run_app(
-        app, access_log=None, host=HOST, port=PORT, ssl_context=ssl_context
-    )
+    app.run(host=HOST, port=PORT)
 
 if __name__=="__main__":
     main()
