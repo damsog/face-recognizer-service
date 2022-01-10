@@ -82,15 +82,6 @@ def main():
     relay = MediaRelay()
 
     #======================================================Requests============================================================
-    async def load_models():
-        result = "0"
-        logger.info("load_models")
-        return result
-
-    async def unload_models():
-        result = "0"
-        logger.info("unload_models")
-        return result
 
     async def encode_images(request):
         logger.info("Encode images Requested")
@@ -113,7 +104,6 @@ def main():
         logger.debug(f'Information: {datajson}')
 
         return_img_json = True if datajson["return_img"]==1 else False
-
         logger.debug(f'Return img as b64: {return_img_json}')
 
         dataset_path = datajson["dataset_path"]
@@ -125,6 +115,25 @@ def main():
         result = mProcessor.analyze_image(dataset_path,mProcessor.b642cv2( img_b64 ),return_img_json=return_img_json)
         
         return web.Response( 
+            content_type = "application/json",
+            text = str(result)
+        )
+    
+    async def detect_image(request):
+        logger.info('Detect image requested')
+
+        datajson = await request.json()
+        logger.debug(f'Information: {datajson}')
+
+        return_img_json = True if datajson["return_img"] == 1 else False
+        logger.debug(f'Return img as b64: {return_img_json}')
+
+        img_b64 = datajson["img"]
+
+        logger.debug('Detecting Image')
+        result = mProcessor.detect_image(mProcessor.b642cv2( img_b64 ), return_img_json=return_img_json )
+
+        return web.Response(
             content_type = "application/json",
             text = str(result)
         )
@@ -189,16 +198,6 @@ def main():
                 {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
             ),
         )
-
-    async def start_live_analytics():
-        result = "0"
-        logger.info("start_live_analytics")
-        return result
-
-    async def stop_live_analytics():
-        result = 0
-        logger.info("stop_live_analytics")
-        return result
     
     async def on_shutdown(app):
         # close peer connections
@@ -216,12 +215,9 @@ def main():
 
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
-    app.router.add_get('/load_models', load_models)
-    app.router.add_get('/start_live_analytics', start_live_analytics)
     app.router.add_post('/facedet_stream', facedet_stream)
-    app.router.add_get('/stop_live_analytics', stop_live_analytics)
     app.router.add_post('/analyze_image', analyze_image)
-    app.router.add_get('/unload_models', unload_models)
+    app.router.add_post('/detect_image', detect_image)
     app.router.add_post('/encode_images', encode_images)
     web.run_app(
         app, access_log=None, host=HOST, port=PORT, ssl_context=ssl_context
