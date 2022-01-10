@@ -65,7 +65,7 @@ def main():
     SSL_CONTEXT = os.environ.get("SERVER_SSL_CONTEXT")
     SSL_KEYFILE = os.environ.get("SERVER_SSL_KEYFILE")
     ROOT = os.path.dirname(__file__)
-    LOGGER_LEVEL = "verbose"
+    LOGGER_LEVEL = os.environ.get("LOGGER_LEVEL")
 
     mProcessor = processor()
 
@@ -73,7 +73,7 @@ def main():
     logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
     logger_date_format = '[%Y/%m/%d %H:%M:%S]'
 
-    if LOGGER_LEVEL == "verbose":
+    if LOGGER_LEVEL == "DEBUG":
         logging.basicConfig(level=logging.DEBUG, format=logger_format, datefmt=logger_date_format)
     else:
         logging.basicConfig(level=logging.INFO,  format=logger_format, datefmt=logger_date_format)
@@ -99,7 +99,7 @@ def main():
         logger.debug(f'Data received: {datajson}')
 
         logger.debug(f'Processing images: {datajson["imgs"]}')
-        result = mProcessor.encode_images( str(datajson["imgs"]).replace("'",'"') )
+        result = mProcessor.encode_images( str(datajson).replace("'",'"') )
 
         return web.Response(
             content_type="application/json",
