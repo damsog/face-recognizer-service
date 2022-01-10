@@ -65,7 +65,7 @@ def main():
     SSL_CONTEXT = os.environ.get("SERVER_SSL_CONTEXT")
     SSL_KEYFILE = os.environ.get("SERVER_SSL_KEYFILE")
     ROOT = os.path.dirname(__file__)
-    LOGGER_LEVEL = None
+    LOGGER_LEVEL = "verbose"
 
     mProcessor = processor()
 
@@ -92,27 +92,46 @@ def main():
         logger.info("unload_models")
         return result
 
-    async def encode_images():
-        result = "0"
-        logger.info("encode_images")
-        result = mProcessor.encode_images( str(request.get_json("imgs")).replace("'",'"') )
-        return str(result).replace("'",'"')
+    async def encode_images(request):
+        logger.info("Encode images Requested")
+        datajson = await request.json()
+
+        logger.debug(f'Data received: {datajson}')
+
+        logger.debug(f'Processing images: {datajson["imgs"]}')
+        result = mProcessor.encode_images( str(datajson["imgs"]).replace("'",'"') )
+
+        return web.Response(
+            content_type="application/json",
+            text=str(result).replace("'",'"')
+        )
 
     async def analyze_image(request):
-        result = "0"
-        logger.info("analyze_image")
-        #mProcessor.analyze_image(request.get_json("imgs"))
+        logger.info("Analyze image requested")
+
         datajson = await request.json()
+        logger.debug(f'Information: {datajson}')
+
         return_img_json = True if datajson["return_img"]==1 else False
+
+        logger.debug(f'Return img as b64: {return_img_json}')
+
         dataset_path = datajson["dataset_path"]
+        logger.debug(f'Dataset : {dataset_path}')
+
         img_b64 =  datajson["img"]
 
+        logger.debug('Processing Image')
         result = mProcessor.analyze_image(dataset_path,mProcessor.b642cv2( img_b64 ),return_img_json=return_img_json)
         
-        return str(result)
+        return web.Response( 
+            content_type = "application/json",
+            text = str(result)
+        )
 
     async def facedet_stream(request):
         params = await request.json()
+        logger.info("Face detection stream requested")
         offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
         pc = RTCPeerConnection()
