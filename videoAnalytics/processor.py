@@ -50,6 +50,14 @@ class processor:
             result = self.analyzer.analyze_img(image, return_img, return_landmarks, return_img_json)
             return result
     
+    def analyze_image_2(self, image, return_img=False, return_landmarks=False, return_img_json=False):
+        if return_img:
+            result,img = self.analyzer.analyze_img(image, return_img, return_landmarks, return_img_json)
+            return result, img
+        else:
+            result = self.analyzer.analyze_img(image, return_img, return_landmarks, return_img_json)
+            return result
+    
     def detect_image(self, image, return_img=False, return_landmarks=False, return_img_json=False):
         if return_img:
             result,img = self.analyzer.detect_img(image, return_img, return_landmarks, return_img_json)
