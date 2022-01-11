@@ -21,16 +21,18 @@ class VideoProcessorTrack(MediaStreamTrack):
 
     kind = "video"
 
-    def __init__(self, track, process, processor):
+    def __init__(self, track, process, processor, dataset_path=None):
         super().__init__()  # don't forget this!
         self.track = track
         self.process = process
         self.processor = processor
+        if dataset_path:
+            self.processor.set_analyzer_dataset(dataset_path)
 
     async def recv(self):
         frame = await self.track.recv()
 
-        if self.process == "detect":
+        if self.process == "detection":
             img = frame.to_ndarray(format="bgr24")
             _,img = self.processor.detect_image(img, return_img=True)
             # rebuild a VideoFrame, preserving timing information
@@ -38,10 +40,10 @@ class VideoProcessorTrack(MediaStreamTrack):
             new_frame.pts = frame.pts
             new_frame.time_base = frame.time_base
             return new_frame
-        elif self.process == "analyze":
+        elif self.process == "recognition":
             #TODO: Dont load the dataset for each image. its making it laggy.
             img = frame.to_ndarray(format="bgr24")
-            _,img = self.processor.analyze_image('/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json',img, return_img=True)
+            _,img = self.processor.analyze_image_2(img, return_img=True)
             # rebuild a VideoFrame, preserving timing information
             new_frame = VideoFrame.from_ndarray(img, format="bgr24")
             new_frame.pts = frame.pts
@@ -173,7 +175,69 @@ def main():
             if track.kind == "video":
                 pc.addTrack(
                     VideoProcessorTrack(
-                        relay.subscribe(track), process="detect", processor=mProcessor
+                        relay.subscribe(track), process="detection", processor=mProcessor
+                    )
+                )
+                if record:
+                    recorder.addTrack(relay.subscribe(track))
+
+            @track.on("ended")
+            async def on_ended():
+                log_info("Track %s ended", track.kind)
+                await recorder.stop()
+
+        # handle offer
+        await pc.setRemoteDescription(offer)
+        await recorder.start()
+
+        # send answer
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+        
+        return web.Response(
+            content_type="application/json",
+            text=json.dumps(
+                {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+            ),
+        )
+
+    async def facerek_stream(request):
+        params = await request.json()
+        dataset_path = params["dataset_path"]
+        logger.info(f'Face recognition stream requested. using group: {dataset_path}')
+        offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
+
+        pc = RTCPeerConnection()
+        pc_id = "PeerConnection(%s)" % uuid.uuid4()
+        pcs.add(pc)
+
+        def log_info(msg, *args):
+            logger.info(pc_id + " " + msg, *args)
+
+        log_info("Created for %s", request.remote)
+        
+        # prepare local media
+        record = False
+        if record:
+            recorder = MediaRecorder("args.record_to")
+        else:
+            recorder = MediaBlackhole()
+
+        @pc.on("connectionstatechange")
+        async def on_connectionstatechange():
+            log_info("Connection state is %s", pc.connectionState)
+            if pc.connectionState == "failed":
+                await pc.close()
+                pcs.discard(pc)
+        
+        @pc.on("track")
+        def on_track(track):
+            log_info("Track %s received", track.kind)
+
+            if track.kind == "video":
+                pc.addTrack(
+                    VideoProcessorTrack(
+                        relay.subscribe(track), process="recognition", processor=mProcessor, dataset_path=dataset_path
                     )
                 )
                 if record:
@@ -216,6 +280,7 @@ def main():
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
     app.router.add_post('/facedet_stream', facedet_stream)
+    app.router.add_post('/facerek_stream', facerek_stream)
     app.router.add_post('/analyze_image', analyze_image)
     app.router.add_post('/detect_image', detect_image)
     app.router.add_post('/encode_images', encode_images)
