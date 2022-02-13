@@ -1,19 +1,45 @@
-import json
-import os
-from uuid import uuid4
-from flask.globals import request
-from dotenv import load_dotenv, find_dotenv
-from videoAnalytics.processor import processor
+# 
+# @author Felipe Serna
+# @email damsog38@gmail.com
+# @create date 2021-14-06 20:01:10
+# @modify date 2022-02-13 14:19:39
+# @desc API that serves Analytics Processes. Face Detection and Recognition for both
+# single images as well as live processes. This app imports and calls a process object
+# which loads the detection and recognition models on gpu memory and then can be used to initiate.
+# 
 
+#*************************************************************************************************
+#                                              Dependencies
+#*************************************************************************************************
+
+# Importing configurations & Global Variables
+from dotenv import load_dotenv, find_dotenv
+
+# API Server dependencies
 from aiohttp import web
 import asyncio
 from av import VideoFrame
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
 import ssl
-import uuid
-import logging
 
+# Other useful dependencies
+import json
+import os
+import uuid
+
+# Analytics personal Library
+from videoAnalytics.processor import processor
+
+# Logging, Terminal Styles & Colors Dependencies
+import logging
+import iridi
+import pyfiglet
+import colorful
+
+#*************************************************************************************************
+#                                              Definitions
+#*************************************************************************************************
 class VideoProcessorTrack(MediaStreamTrack):
     """
     A video stream track that transforms frames from an another track.
@@ -52,7 +78,9 @@ class VideoProcessorTrack(MediaStreamTrack):
         else:
             return frame
 
-
+#*************************************************************************************************
+#                                              Main Function
+#*************************************************************************************************
 def main():
     #initializations
     load_dotenv(find_dotenv())
@@ -69,7 +97,9 @@ def main():
     ROOT = os.path.dirname(__file__)
     LOGGER_LEVEL = os.environ.get("LOGGER_LEVEL")
 
-    mProcessor = processor()
+    # Server Api title definition
+    serverTitle = pyfiglet.figlet_format("Gnosis", font="isometric2", width=200)
+    serverSubtitle = pyfiglet.figlet_format("Face Analytics Server", font="alligator2", width=300)
 
     logger = logging.getLogger(__name__)
     logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
@@ -80,9 +110,12 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO,  format=logger_format, datefmt=logger_date_format)
 
+    iridi.print(serverTitle, ["#8A2387", "#E94057", "#F27121"], bold=True)
+    iridi.print(serverSubtitle, ["#8A2387", "#E94057", "#F27121"], bold=True)
+
+    mProcessor = processor()
     pcs = set()
     relay = MediaRelay()
-
     #======================================================Requests============================================================
 
     async def encode_images(request):
@@ -269,14 +302,13 @@ def main():
         await asyncio.gather(*coros)
         pcs.clear()
 
-    #======================================================Start the Server====================================================
-
     if SSL_CONTEXT:
         ssl_context = ssl.SSLContext()
         ssl_context.load_cert_chain(SSL_CONTEXT, SSL_KEYFILE)
     else:
         ssl_context = None
 
+    # Setting API Enpoints
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
     app.router.add_post('/facedet_stream', facedet_stream)
@@ -284,9 +316,14 @@ def main():
     app.router.add_post('/analyze_image', analyze_image)
     app.router.add_post('/detect_image', detect_image)
     app.router.add_post('/encode_images', encode_images)
+
+    # Running the server
     web.run_app(
         app, access_log=None, host=HOST, port=PORT, ssl_context=ssl_context
     )
 
+#*************************************************************************************************
+#                                              Running
+#*************************************************************************************************
 if __name__=="__main__":
     main()

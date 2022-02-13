@@ -13,3 +13,6 @@ aiortc
 #"Flask[async]"
 aiohttp
 asyncio
+pyfiglet
+colorful
+iridi
