@@ -102,8 +102,8 @@ def main():
     serverSubtitle = pyfiglet.figlet_format("Face Analytics Server", font="alligator2", width=300)
 
     logger = logging.getLogger(__name__)
-    logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
-    logger_date_format = '[%Y/%m/%d %H:%M:%S]'
+    logger_format = '%(asctime)s : : %(levelname)s : : %(name)s : : %(message)s'
+    logger_date_format = '[%Y:%m:%d %H:%M:%S %Z]'
 
     if LOGGER_LEVEL == "DEBUG":
         logging.basicConfig(level=logging.DEBUG, format=logger_format, datefmt=logger_date_format)
@@ -183,7 +183,7 @@ def main():
         pcs.add(pc)
 
         def log_info(msg, *args):
-            logger.info(pc_id + " " + msg, *args)
+            logger.info( colorful.cyan( pc_id + " " + msg ), *args )
 
         log_info("Created for %s", request.remote)
         
