@@ -12,6 +12,7 @@ from pathlib import Path
 path_root = Path(__file__).parents[1]
 sys.path.append(str(path_root))
 from videoAnalytics.utils import scaller_conc, true_match
+from videoAnalytics.logger import Logger
 
 
 # This class is used to Receive an image and a dataset, detect all faces on said image, then 
@@ -202,6 +203,10 @@ class faceAnalyzer:
             return self.json_output
 
 def main() -> None:
+    # Importing these two libs only if this modules is called as a standalone script
+    import pyfiglet
+    import iridi
+
     ap = argparse.ArgumentParser()
     ap.add_argument("type", choices=["detection", "recognition"], help="Select detection for Plain FaceDet and Recognition for FaceDetection and Recognition.")
     ap.add_argument("-i", "--image", required=False, help="Reads an image from path. If not given, opens camera")
@@ -211,19 +216,22 @@ def main() -> None:
     ap.add_argument("-s", "--show_img", action="store_true", help="Shows image output")
     args = vars(ap.parse_args())
 
-    # Logger Configuration
-    logger = logging.getLogger(__name__)
-    logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
-    logger_date_format = '[%Y/%m/%d %H:%M:%S]'
+    # Cool title
+    moduleTitle = pyfiglet.figlet_format("Face Analyzer", font="isometric2", width=200)
+    iridi.print(moduleTitle, ["#8A2387", "#E94057", "#F27121"], bold=True)
+    iridi.print("Loading face Analyzer module as a standalone program", ["#8A2387", "#E94057", "#F27121"], bold=True)
+    iridi.print("Prepare your mind to be blown!!!!", ["#8A2387", "#E94057", "#F27121"], bold=True)
 
+    # Logger Configuration
+    MODULE_NAME = "FACE ANALYZER"
     if args["verbose"]:
-        logging.basicConfig(level=logging.DEBUG, format=logger_format, datefmt=logger_date_format)
+        logger = Logger("DEBUG", COLORED=True, TAG_MODULE= MODULE_NAME)
     else:
-        logging.basicConfig(level=logging.INFO,  format=logger_format, datefmt=logger_date_format)
+        logger = Logger("INFO", COLORED=True, TAG_MODULE= MODULE_NAME)
 
     if not args["dataset"]:
        if args["type"] == "recognition":
-           logger.info("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
+           logger.error("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
            sys.exit()
 
     # Getting input image. -i to get it from path. else get it from camera
@@ -236,8 +244,12 @@ def main() -> None:
     
     dataset_path = args["dataset"]
 
-    #input_img = cv2.imread('/media/felipe/Otros/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
-    #-d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t true
+    # input_img = cv2.imread('/media/felipe/Otros/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
+
+    # To Run Face recognition Test example
+    # python videoAnalytics/analyzer.py recognition -d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t -v
+    # To Run Face detection Test example
+    # python videoAnalytics/analyzer.py detection -t -v
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
     face_detection_model = 'retinaface_r50_v1'
