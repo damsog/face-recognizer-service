@@ -100,6 +100,10 @@ class processor:
                     break
 
 def main() -> None:
+    # Importing these two libs only if this modules is called as a standalone script
+    import pyfiglet
+    import iridi
+
     ap = argparse.ArgumentParser()
     ap.add_argument("type", choices=["detection", "recognition"], help="Select detection for Plain FaceDet and Recognition for FaceDetection and Recognition.")
     ap.add_argument("-i", "--image", required=False, help="Reads an image from path. If not given, opens camera")
@@ -109,12 +113,18 @@ def main() -> None:
     ap.add_argument("-s", "--show_img", action="store_true", help="Shows image output")
     args = vars(ap.parse_args())
 
+    # Cool title
+    moduleTitle = pyfiglet.figlet_format("Face Processor", font="isometric2", width=200)
+    iridi.print(moduleTitle, ["#8A2387", "#E94057", "#F27121"], bold=True)
+    iridi.print("Loading face processor module as a standalone program", ["#8A2387", "#E94057", "#F27121"], bold=True)
+    iridi.print("Prepare your mind to be blown!!!!", ["#8A2387", "#E94057", "#F27121"], bold=True)
+
     # Logger Configuration
-    TAG_MODULE = "FACE ANALITICS PROCESSOR"
+    MODULE_NAME = "FACE ANALITICS PROCESSOR"
     if args["verbose"]:
-        logger = Logger("DEBUG", COLORED=True, TAG_MODULE= TAG_MODULE)
+        logger = Logger("DEBUG", COLORED=True, TAG_MODULE= MODULE_NAME)
     else:
-        logger = Logger("INFO", COLORED=True, TAG_MODULE= TAG_MODULE)
+        logger = Logger("INFO", COLORED=True, TAG_MODULE= MODULE_NAME)
 
     if not args["dataset"]:
        if args["type"] == "recognition":
