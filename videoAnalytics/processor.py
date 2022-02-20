@@ -128,7 +128,7 @@ def main() -> None:
 
     if not args["dataset"]:
        if args["type"] == "recognition":
-           logger.info("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
+           logger.error("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
            sys.exit()
 
     logger.info("Preparing the models")
