@@ -4,12 +4,12 @@ import base64
 import argparse
 import insightface
 import numpy as np
-import logging
 from pathlib import Path
 path_root = Path(__file__).parents[1]
 sys.path.append(str(path_root))
 from videoAnalytics.encoder import encoderExtractor
 from videoAnalytics.analyzer import faceAnalyzer
+from videoAnalytics.logger import Logger
 
 class processor:
     def __init__(self, face_detection_model='retinaface_r50_v1', face_recognition_model='arcface_r100_v1') -> None:
@@ -110,14 +110,7 @@ def main() -> None:
     args = vars(ap.parse_args())
 
     # Logger Configuration
-    logger = logging.getLogger(__name__)
-    logger_format = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
-    logger_date_format = '[%Y/%m/%d %H:%M:%S]'
-
-    if args["verbose"]:
-        logging.basicConfig(level=logging.DEBUG, format=logger_format, datefmt=logger_date_format)
-    else:
-        logging.basicConfig(level=logging.INFO,  format=logger_format, datefmt=logger_date_format)
+    logger = Logger(args["verbose"])
 
     if not args["dataset"]:
        if args["type"] == "recognition":
@@ -146,7 +139,8 @@ def main() -> None:
     dataset_path = args["dataset"]
 
     #input_img = cv2.imread('/mnt/72086E48086E0C03/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
-    #-d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t
+    #python videoAnalytics/processor.py recognition -d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t
+    #python videoAnalytics/processor.py detection -t
 
     if args["type"] == "recognition":
         logger.debug("Performing face recognition on image")
