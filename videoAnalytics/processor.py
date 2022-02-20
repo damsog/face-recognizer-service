@@ -110,7 +110,11 @@ def main() -> None:
     args = vars(ap.parse_args())
 
     # Logger Configuration
-    logger = Logger(args["verbose"])
+    TAG_MODULE = "FACE ANALITICS PROCESSOR"
+    if args["verbose"]:
+        logger = Logger("DEBUG", COLORED=True, TAG_MODULE= TAG_MODULE)
+    else:
+        logger = Logger("INFO", COLORED=True, TAG_MODULE= TAG_MODULE)
 
     if not args["dataset"]:
        if args["type"] == "recognition":
