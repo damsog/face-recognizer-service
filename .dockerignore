@@ -1,0 +1,5 @@
+__pycache__/
+face_videoanalytics_venv/
+node_modules/
+imgs/**
+!imgs/.gitkeep
