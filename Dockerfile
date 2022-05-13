@@ -1,5 +1,4 @@
-FROM nvidia/cuda:10.2-base-ubuntu18.04
-
+FROM nvidia/cuda:10.2-runtime-ubuntu18.04
 WORKDIR /app
 
 COPY . .
@@ -38,8 +37,10 @@ RUN python -m pip install colorful
 RUN python -m pip install iridi
 RUN python -m pip install gdown
 
-RUN gdown https://drive.google.com/u/0/uc?id=1wm-6K688HQEx_H90UdAIuKv-NAsKBu85&export=download
-RUN . unzip retinaface-R50.zip
-RUN . mv R50-0000.params R50-symbol.json ~/.insightface/models/retinaface_r50_v1/
+RUN python models_downloader.py
+RUN sleep 40
+RUN unzip retinaface-R50.zip
+RUN mkdir ~/.insightface/ && mkdir ~/.insightface/models/ && mkdir ~/.insightface/models/retinaface_r50_v1/
+RUN mv R50-0000.params R50-symbol.json ~/.insightface/models/retinaface_r50_v1/
 
 CMD [ "bash" ]
