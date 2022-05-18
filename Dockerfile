@@ -37,10 +37,15 @@ RUN python -m pip install colorful
 RUN python -m pip install iridi
 RUN python -m pip install gdown
 
-RUN python models_downloader.py
-RUN sleep 40
-RUN unzip retinaface-R50.zip
 RUN mkdir ~/.insightface/ && mkdir ~/.insightface/models/ && mkdir ~/.insightface/models/retinaface_r50_v1/
+RUN python models_downloader.py
+RUN sleep 10
+
+RUN unzip model-r100-ii.zip && rm model-r100-ii.zip
+RUN mv model-r100-ii/ arcface_r100_v1/
+RUN mv arcface_r100_v1/ ~/.insightface/models/
+
+RUN unzip retinaface-R50.zip
 RUN mv R50-0000.params R50-symbol.json ~/.insightface/models/retinaface_r50_v1/
 
-CMD [ "bash" ]
+CMD [ "python" , "app.py" ]
