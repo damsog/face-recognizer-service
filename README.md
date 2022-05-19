@@ -30,3 +30,10 @@
 ### the models for this version should be downloaded manually from :
 ### https://onedrive.live.com/?authkey=%21ALRWS0dNaAhDRuc&cid=4A83B6B633B029CC&id=4A83B6B633B029CC%215836&parId=4A83B6B633B029CC%215834&action=locate
 ### and then placed on ~/.insightface/models
+
+### Docker Image and Build
+### docker build -t face_analytics:1.0 . 
+### Run Docker container
+### docker run --gpus all -p 6000:6000 -d face_analytics:1.0
+### Check outputs 
+### docker logs --tail N <container_id>
