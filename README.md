@@ -43,9 +43,6 @@ and then place them manually on ```~/.insightface/models```
 
 This creates a python virtual environment in the current directory and installs all dependencies there.
 
-```sh
-```
-
 ### *With Docker (Build the image Container)*
 
 To build the image just open the terminal on the project directory and run the following command
