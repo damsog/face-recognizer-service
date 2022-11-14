@@ -4,6 +4,8 @@ videoAnalytics/__pycache__/*
 .pylintrc
 imgs/*
 !imgs/.gitkeep
+out/*
+!out/.gitkeep
 .env
 config_info
 node_modules/
