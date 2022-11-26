@@ -1,4 +1,5 @@
 import sys
+from typing import List
 import cv2
 import base64
 import argparse
@@ -36,6 +37,10 @@ class processor:
     def encode_images(self, input_data):
         self.encoder.set_input_data( input_data )
         result = self.encoder.process_data()
+        return result
+
+    def encode_narray_image(self, img: np.ndarray) -> List[float]:
+        result = self.encoder.process_image( img )
         return result
     
     def set_analyzer_dataset(self, dataset_path):

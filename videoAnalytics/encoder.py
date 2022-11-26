@@ -91,7 +91,10 @@ class encoderExtractor:
         face = scaller_conc( img[int(bboxs[id_max][1]):int(bboxs[id_max][3]), int(bboxs[id_max][0]):int(bboxs[id_max][2]), :] )
         
         if face is None: return None
-        else: return self.recognizer.get_embedding(face)
+        # Returning the embedding. Returning the first element only.
+        else: 
+            embedding = self.recognizer.get_embedding(face)[0]
+            return [ float(num) for num in embedding ]
 
     # Process a list of images and return a list of embeddings for a key
     def process_images(self, imgs: List[np.ndarray], key: str) -> OutputData:
@@ -105,7 +108,7 @@ class encoderExtractor:
         for i,img in enumerate(imgs):
             embedding = self.process_image(img, width_divider)
             if embedding: 
-                embeddings.append( {"img":i , "embedding": [ float(num) for num in embedding[0] ] } )
+                embeddings.append( {"img":i , "embedding": embedding } )
                 print(f'File completed: {i} for key {key}')
                     
             self.json_output[key] = embeddings
@@ -142,7 +145,7 @@ class encoderExtractor:
                 embedding = self.process_image(img, width_divider)
                 if embedding is None: continue 
                 
-                embeddings.append( {"img":img_name , "embedding": [ float(num) for num in embedding[0] ] } )
+                embeddings.append( {"img":img_name , "embedding": embedding } )
                 print(f'File completed: {img_name} for key {key}')
                     
             self.json_output[key] = embeddings
