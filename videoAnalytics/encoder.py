@@ -1,6 +1,8 @@
 import argparse
 import base64
 import json
+from typing import List
+from typing_extensions import TypedDict
 import imutils
 import insightface
 import cv2
@@ -15,13 +17,22 @@ from videoAnalytics.utils import scaller_conc
 
 #This script  gets the embedding of a set of images.
 #Receives a json containing the path to siad images as input.
-#{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}
+#{"felipe":["imgs/felipe/felipe1.jpg","imgs/felipe/felipe7.jpg"], "vincent":["imgs/vincent/00000002.jpg","imgs/vincent/00000024.jpg"]}
 #Returns a json containing the embedding of each image to be stored or processed.
 #This script can be called from terminal. 
 #: Create a another python script to test this script independenly
+class InputData(TypedDict):
+    key: List[str]
+
+class OutputEncodding(TypedDict):
+    img: str
+    embedding: List[float]
+
+class OutputData(TypedDict):
+    key: List[OutputEncodding]        
 
 class encoderExtractor:
-    def __init__(self, input_data, detector, recognizer):
+    def __init__(self, input_data: InputData, detector, recognizer) -> None:
         if input_data:
             self.json_data = json.loads(input_data)
         else:
@@ -29,27 +40,19 @@ class encoderExtractor:
 
         self.detector = detector
         self.recognizer = recognizer
-
         self.json_output = {}
 
-        #if self.json_data:
-        #    self.json_output = self.json_data
-        #self.json_output["embeddings"] = []
-
-    def set_input_data(self, input_data):
+    def set_input_data(self, input_data: InputData) -> None:
         self.json_data = json.loads(input_data)
-
         self.json_output = {}
-        #self.json_output['name'] = self.json_data['name']
-        #self.json_output["embeddings"] = []
     
-    def get_input_data(self):
+    def get_input_data(self) -> InputData:
         return self.json_data
 
-    def get_output_data(self):
+    def get_output_data(self) -> OutputData:
         return self.json_output
     
-    def read_img(self, img_source, format="route"):
+    def read_img(self, img_source: str, format="route") -> np.ndarray:
         if format=="route":
             img = cv2.imread(img_source)
         elif format=="b64":
@@ -60,9 +63,57 @@ class encoderExtractor:
             img = None
 
         return img
+    
+    # Process a single image
+    def process_image(self, img: np.ndarray, width_divider: int = 4) -> np.ndarray:
+        if img is None: return None
         
-    def process_data(self, img_reading_format="route"):
+        img = imutils.resize(img, width=int(img.shape[1]/width_divider))
+        bboxs, _ = self.detector.detect(img, threshold=0.5, scale=1.0)
+        if( bboxs is None or len(bboxs)==0): return None
+        
+        todel = []
+        for i in range(bboxs.shape[0]):
+            if(any(x<0 for x in bboxs[i])):
+                todel.append(i)
+        for i in todel:
+            bboxs = np.delete(bboxs, i, 0)
 
+        m_area = 0
+        id_max = 0
+
+        for (i, bbox ) in enumerate(bboxs):
+            area = (int(bbox[3]) - int(bbox[1]))*(int(bbox[2]) -int(bbox[0]))
+            if(area > m_area):
+                id_max = i
+                m_area = area
+
+        face = scaller_conc( img[int(bboxs[id_max][1]):int(bboxs[id_max][3]), int(bboxs[id_max][0]):int(bboxs[id_max][2]), :] )
+        
+        if face is None: return None
+        else: return self.recognizer.get_embedding(face)
+
+    # Process a list of images and return a list of embeddings for a key
+    def process_images(self, imgs: List[np.ndarray], key: str) -> OutputData:
+        self.json_output = {}
+        width_divider = 4
+
+        # Preparing the output for a key
+        embeddings = []
+
+        # Reading the images for a key
+        for i,img in enumerate(imgs):
+            embedding = self.process_image(img, width_divider)
+            if embedding: 
+                embeddings.append( {"img":i , "embedding": [ float(num) for num in embedding[0] ] } )
+                print(f'File completed: {i} for key {key}')
+                    
+            self.json_output[key] = embeddings
+        
+        return self.json_output
+
+    # Process a list of images from a json. the json contains the path to the images or the base64 encoding of the images
+    def process_data(self, img_reading_format: str= "route") -> OutputData:
         if img_reading_format!="route" and img_reading_format!="b64": 
             print("Format not understood")
             return "{}"
@@ -75,7 +126,7 @@ class encoderExtractor:
         #self.json_output['name'] = self.json_data['name']
         #self.json_output["embeddings"] = []
 
-        WIDTHDIVIDER = 4
+        width_divider = 4
     
         keys = self.json_data.keys()
 
@@ -86,46 +137,14 @@ class encoderExtractor:
 
             # Reading the images for a key
             for img_name in self.json_data[key]:
+                print(f'Processing file: {img_name} for key {key}')
                 img = self.read_img( img_name, img_reading_format)
-                if img is None:
-                    continue
-                img = imutils.resize(img, width=int(img.shape[1]/WIDTHDIVIDER))
-
-                bboxs, _ = self.detector.detect(img, threshold=0.5, scale=1.0)
-
-                if( bboxs is not None):
-                    todel = []
-                    for i in range(bboxs.shape[0]):
-                        if(any(x<0 for x in bboxs[i])):
-                            todel.append(i)
-                    for i in todel:
-                        bboxs = np.delete(bboxs, i, 0)
-
-                    m_area = 0
-                    id_max = 0
-
-                    for (i, bbox ) in enumerate(bboxs):
-                        #print(bbox)
-                        area = (int(bbox[3]) - int(bbox[1]))*(int(bbox[2]) -int(bbox[0]))
-
-                        if(area > m_area):
-                            id_max = i
-                            m_area = area
-
-
-                    face = scaller_conc( img[int(bboxs[id_max][1]):int(bboxs[id_max][3]), int(bboxs[id_max][0]):int(bboxs[id_max][2]), :] )
-                    if face is not None:
-                        embedding = self.recognizer.get_embedding(face)
-                        #ENCODDING NEED TO BE CONVERTED INTO SOMETHING THAT A DB CAN STORE EASILY
-                        #np.set_printoptions(suppress=True)
-                        #embedding_string = np.array2string( embedding[0] )
-                        #print(embedding[0])
-                        #Creating a list may round the data
-                        embeddings.append( {"img":img_name , "embedding": [ float(num) for num in embedding[0] ] } )
-
-
-
-                    print(f'File completed: {img_name} for key {key}')
+                embedding = self.process_image(img, width_divider)
+                if embedding is None: continue 
+                
+                embeddings.append( {"img":img_name , "embedding": [ float(num) for num in embedding[0] ] } )
+                print(f'File completed: {img_name} for key {key}')
+                    
             self.json_output[key] = embeddings
         #print(self.json_data)
         #self.json_output = embeddings
@@ -145,6 +164,8 @@ def main() -> None:
     rekognition_using_cpu = -1 if args["rek_cpu"] else 0
     input_data = args['input_data']
     #input_data = '{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
+    #input_data = '{"felipe":["imgs/felipe/felipe1.jpg","imgs/felipe/felipe7.jpg"], "vincent":["imgs/vincent/00000002.jpg","imgs/vincent/00000024.jpg"]}'
+    #input_data = '{"felipe":["imgs/felipe/felipe1.jpg","imgs/felipe/felipe7.jpg"]]}'
     output = args['out']
 
     #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
