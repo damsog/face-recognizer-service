@@ -9,3 +9,4 @@ out/*
 .env
 config_info
 node_modules/
+.vscode/
