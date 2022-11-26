@@ -8,7 +8,7 @@ import numpy as np
 from pathlib import Path
 path_root = Path(__file__).parents[1]
 sys.path.append(str(path_root))
-from videoAnalytics.encoder import encoderExtractor
+from videoAnalytics.encoder import OutputData, encoderExtractor
 from videoAnalytics.analyzer import faceAnalyzer
 from videoAnalytics.logger import Logger
 
@@ -41,6 +41,10 @@ class processor:
 
     def encode_narray_image(self, img: np.ndarray) -> List[float]:
         result = self.encoder.process_image( img )
+        return result
+    
+    def encode_narray_images(self, imgs: List[np.ndarray], key: str) -> OutputData:
+        result = self.encoder.process_images( imgs, key )
         return result
     
     def set_analyzer_dataset(self, dataset_path):
