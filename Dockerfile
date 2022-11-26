@@ -14,7 +14,7 @@ RUN apt-get -y install wget
 RUN apt-get -y install unzip
 RUN /usr/bin/python3.7 -m pip install virtualenv
 
-ENV VIRTUAL_ENV=/app/.venv
+ENV VIRTUAL_ENV=/app/venv
 RUN virtualenv $VIRTUAL_ENV --python=python3.7
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 

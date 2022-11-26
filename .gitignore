@@ -10,3 +10,4 @@ out/*
 config_info
 node_modules/
 .vscode/
+venv/
