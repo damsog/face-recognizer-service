@@ -1,8 +1,0 @@
-{
-  "scripts": {
-    "dev": "nodemon --exec python3 app.py"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.15"
-  }
-}
