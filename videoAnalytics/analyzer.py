@@ -186,7 +186,7 @@ class faceAnalyzer:
                 for cord in landmark:
                     cv2.circle(img, (int(cord[0]),int(cord[1])), 3, (0, 0, 255), -1)
                 
-                face_json = { "label" : idx, "bbox" : bbox }
+                face_json = { "label" : idx, "bbox" : bbox.tolist() }
                 if return_landmarks:
                     face_json["landmarks"] = landmark
                 cv2.putText(img, str(idx), (int(bbox[0]),int(bbox[1])),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
