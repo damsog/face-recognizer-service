@@ -1,10 +1,12 @@
 import asyncio
 from fastapi import FastAPI
-from .configurations.information import *
+
+from app.configurations.information import *
 from aiortc.contrib.media import MediaRelay
 from videoAnalytics.processor import processor
 
-from .controllers import encoderController
+from app.controllers import detectionController
+from app.controllers import encoderController
 
 def create_app():
     app = FastAPI(
@@ -15,6 +17,7 @@ def create_app():
     )
 
     app.include_router(encoderController.router)
+    app.include_router(detectionController.router)
 
     @app.on_event("startup")
     async def startup():
