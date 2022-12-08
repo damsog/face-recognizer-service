@@ -8,20 +8,25 @@ def compare_embeddings(emb1t, emb2t):
     sim = np.dot(emb1, emb2)/(norm(emb1)*norm(emb2))
     return sim
 
-#def compare_faces(data_emb, emb):
-
-def find_match(data, stored_data, thresh = 0.5):
-    ldata = np.linalg.norm(data, axis=1)[None].T
-    lstored = np.linalg.norm(stored_data, axis=1)[None].T
-    num = np.dot(data, stored_data.T)
-    den = np.dot(ldata, lstored.T)
+# This function is used to compare the embeddings of the face against the stored embeddings.
+# We use cosine similarity to compare the embeddings.
+# For optimization, we calculate the cosine simmilarity using lineal algebra to compute it faster.
+# For more info about the cosine similarity, check this link: https://en.wikipedia.org/wiki/Cosine_similarity
+def find_match(vector, stored_vectors, thresh = 0.5):
+    # Euclidean norm of the input vector and the stored vectors
+    norm_vector = np.linalg.norm(vector, axis=1)[None].T
+    norm_stored_vectors = np.linalg.norm(stored_vectors, axis=1)[None].T
+    # Dot product of the input vector and the stored vectors. fast way to compute the dot product
+    # of the vector against all the stored vectors
+    num = np.dot(vector, stored_vectors.T)
+    # Dot product of the norms of the input vector and the stored vectors. fast way to compute the dot product
+    # of the norms of the vector against all the stored vectors
+    den = np.dot(norm_vector, norm_stored_vectors.T)
+    # Cosine similarity
     similarity = num/den
-    #thresh_vec = np.zeros( (similarity.shape[0],1) ) + thresh
-    #similarity = np.column_stack(( thresh_vec,similarity ))
-    #matches = np.argmax(similarity, axis = 1)
-    #--V2--
-    matches = np.where(similarity>thresh, True, False)
 
+    # We return the index of the stored vectors that have a similarity higher than the threshold
+    matches = np.where(similarity>thresh, True, False)
     return matches
 
 def true_match(data, stored_data,nnames, unames, thresh = 0.4):
