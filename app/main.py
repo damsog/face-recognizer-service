@@ -2,6 +2,8 @@ import asyncio
 import os
 from dotenv import find_dotenv, load_dotenv
 from fastapi import FastAPI
+import pyfiglet
+import iridi
 
 from app.configurations.information import *
 from aiortc.contrib.media import MediaRelay
@@ -29,6 +31,14 @@ def create_app():
     # Create a MediaRelay
     @app.on_event("startup")
     async def startup():
+        # Service title definition
+        serverTitle = pyfiglet.figlet_format("Gnosis", font="isometric2", width=200)
+        serverSubtitle = pyfiglet.figlet_format("Recognizer Service", font="alligator2", width=300)
+
+        iridi.print(serverTitle, ["#8A2387", "#E94057", "#F27121"], bold=True)
+        iridi.print(serverSubtitle, ["#8A2387", "#E94057", "#F27121"], bold=True)
+
+
         load_dotenv(find_dotenv())
 
         # Load the processor, this will load the model. 0-N for GPU, -1 for CPU
