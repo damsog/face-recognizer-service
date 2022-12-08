@@ -120,6 +120,8 @@ def main() -> None:
     ap.add_argument("-t", "--video_test", action="store_true", help="If selected, opens camera to live test")
     ap.add_argument("-v", "--verbose", action="store_true", help="Debug level for logger output")
     ap.add_argument("-s", "--show_img", action="store_true", help="Shows image output")
+    ap.add_argument("-dc", "--det-cpu", action="store_true", help="use cpu for detection")
+    ap.add_argument("-rc", "--rek-cpu", action="store_true", help="use cpu for recognition")
     args = vars(ap.parse_args())
 
     # Cool title
@@ -135,6 +137,9 @@ def main() -> None:
     else:
         logger = Logger("INFO", COLORED=True, TAG_MODULE= MODULE_NAME)
 
+    detection_using_cpu = -1 if args["det_cpu"] else 0
+    rekognition_using_cpu = -1 if args["rek_cpu"] else 0
+
     if not args["dataset"]:
        if args["type"] == "recognition":
            logger.error("For recognition you must provide a dataset. Use the flag: -d /path/to/dataset")
@@ -145,7 +150,12 @@ def main() -> None:
     face_recognition_model = 'arcface_r100_v1'
     logger.debug(f'Face detection model: {face_detection_model}')
     logger.debug(f'Face recognition model: {face_recognition_model}')
-    mProcessor = processor(face_detection_model,face_recognition_model)
+    mProcessor = processor(
+        detection_using_cpu,
+        rekognition_using_cpu,
+        face_detection_model,
+        face_recognition_model
+    )
 
     # Getting input image. -i to get it from path. else get it from camera
     if args["image"]:
