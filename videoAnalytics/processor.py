@@ -13,14 +13,14 @@ from videoAnalytics.analyzer import faceAnalyzer
 from videoAnalytics.logger import Logger
 
 class processor:
-    def __init__(self, face_detection_model='retinaface_r50_v1', face_recognition_model='arcface_r100_v1') -> None:
-        #loading the face detection model. 0 means to work with GPU. -1 is for CPU.
+    def __init__(self, detector_load_device=0, recognizer_load_device=0,face_detection_model='retinaface_r50_v1', face_recognition_model='arcface_r100_v1') -> None:
+        #loading the face detection model. detector_load_device 0 means to work with GPU. -1 is for CPU.
         detector = insightface.model_zoo.get_model(face_detection_model)
-        detector.prepare(ctx_id = 0, nms=0.4)
+        detector.prepare(ctx_id = detector_load_device, nms=0.4)
 
-        #loading the face recognition model. 0 means to work with GPU. -1 is for CPU.
+        #loading the face recognition model. recognizer_load_device 0 means to work with GPU. -1 is for CPU.
         recognizer = insightface.model_zoo.get_model(face_recognition_model)
-        recognizer.prepare(ctx_id = 0)
+        recognizer.prepare(ctx_id = recognizer_load_device)
 
         self.encoder = encoderExtractor(None, detector, recognizer)
         self.analyzer = faceAnalyzer(detector, recognizer, None)
