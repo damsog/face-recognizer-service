@@ -107,53 +107,53 @@ class faceAnalyzer:
         img = imutils.resize(img, width=int(img.shape[1]/WIDTHDIVIDER))
         bboxs, landmarks = self.detector.detect(img, threshold=0.5, scale=1.0)
 
-        if( bboxs is not None):
+        if bboxs is None: return None
 
-            # Cleaning some data. some faces that are kind of outside the area
-            # TODO: extract this as a function
-            todel = []
-            for i in range(bboxs.shape[0]):
-                if(any(x<0 for x in bboxs[i])):
-                    todel.append(i)
-            for i in todel:
-                bboxs = np.delete(bboxs, i, 0)
+        # Cleaning some data. some faces that are kind of outside the area
+        # TODO: extract this as a function
+        todel = []
+        for i in range(bboxs.shape[0]):
+            if(any(x<0 for x in bboxs[i])):
+                todel.append(i)
+        for i in todel:
+            bboxs = np.delete(bboxs, i, 0)
 
-            # Processing the faces detected. Drawing the bboxes, landmarks and cutting the faces
-            # to pass to the recognizer
-            # TODO: Extract this as a function
-            for bbox, landmark in zip(bboxs, landmarks):
-                # Cutting each Face
-                face = scaller_conc( img[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2]),:] )
-                # Drawing the bboxes
-                cv2.rectangle(img, (int(bbox[0]),int(bbox[1])), (int(bbox[2]),int(bbox[3])), (0, 255, 0), 1)
-                # Drawing landmarks
-                for cord in landmark:
-                    cv2.circle(img, (int(cord[0]),int(cord[1])), 3, (0, 0, 255), -1)
-                faces.append( face )
+        # Processing the faces detected. Drawing the bboxes, landmarks and cutting the faces
+        # to pass to the recognizer
+        # TODO: Extract this as a function
+        for bbox, landmark in zip(bboxs, landmarks):
+            # Cutting each Face
+            face = scaller_conc( img[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2]),:] )
+            # Drawing the bboxes
+            cv2.rectangle(img, (int(bbox[0]),int(bbox[1])), (int(bbox[2]),int(bbox[3])), (0, 255, 0), 1)
+            # Drawing landmarks
+            for cord in landmark:
+                cv2.circle(img, (int(cord[0]),int(cord[1])), 3, (0, 0, 255), -1)
+            faces.append( face )
 
-            embeddings = np.zeros( (1,512) )
+        embeddings = np.zeros( (1,512) )
 
-            # Processing faces for recognition                        
-            if faces:
-                # Gets embedding for each face
-                for face in faces:
-                    if(face is not None):
-                        embeddings = np.row_stack(( embeddings,self.recognizer.get_embedding(face)  ))
-                embeddings = np.delete(embeddings, 0 , 0 )
+        # Processing faces for recognition                        
+        if faces:
+            # Gets embedding for each face
+            for face in faces:
+                if face is None: continue
+                embeddings = np.row_stack(( embeddings,self.recognizer.get_embedding(face)  ))
+            embeddings = np.delete(embeddings, 0 , 0 )
 
+            
+            # Now process the embeddings for each face to find matches
+            if(embeddings is not None):
+                # TODO: Check the true match function which is working kind of weird for profiles with few images
+                matches = true_match(embeddings,self.dataset_embeddings, self.dataset_names, self.dataset_unames, 0.3)  #0.5
                 
-                # Now process the embeddings for each face to find matches
-                if(embeddings is not None):
-                    # TODO: Check the true match function which is working kind of weird for profiles with few images
-                    matches = true_match(embeddings,self.dataset_embeddings, self.dataset_names, self.dataset_unames, 0.3)  #0.5
-                    
-                    # Generating final output. iterating through the faces and getting their info
-                    for indx, (bbox, landmark) in enumerate(zip(bboxs, landmarks)):
-                        face_json = { "label" : self.labels[matches[indx]], "bbox" : bbox }
-                        if return_landmarks:
-                            face_json["landmarks"] = landmark
-                        cv2.putText(img, self.labels[matches[indx]], (int(bbox[0]),int(bbox[1])),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-                        output_array.append(face_json)
+                # Generating final output. iterating through the faces and getting their info
+                for indx, (bbox, landmark) in enumerate(zip(bboxs, landmarks)):
+                    face_json = { "label" : self.labels[matches[indx]], "bbox" : bbox }
+                    if return_landmarks:
+                        face_json["landmarks"] = landmark
+                    cv2.putText(img, self.labels[matches[indx]], (int(bbox[0]),int(bbox[1])),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+                    output_array.append(face_json)
         
         # Output Json
         self.json_output = { "faces" : output_array }
