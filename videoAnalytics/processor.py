@@ -171,9 +171,14 @@ def main() -> None:
     logger.info(f'Reading dataset from path {args["dataset"]}')
     dataset_path = args["dataset"]
 
-    #input_img = cv2.imread('/mnt/72086E48086E0C03/Projects/Face_Recognizer_Service/imgs/00000002.jpg')
-    #python videoAnalytics/processor.py recognition -d '/mnt/72086E48086E0C03/Projects/VideoAnalytics_Server/resources/user_data/1/g1/g1embeddings.json' -t
-    #python videoAnalytics/processor.py detection -t
+    # Video Recognition Example
+    # python videoAnalytics/processor.py recognition -d 'embeddings.json' -t
+    # Image Recognition Example
+    # python videoAnalytics/processor.py recognition -i 'img.jpg' -d 'embeddings.json' -s
+    # Image Detection Example
+    # python videoAnalytics/processor.py detection -i 'img.jpg' -s
+    # Video Detection Example
+    # python videoAnalytics/processor.py detection -t
 
     if args["type"] == "recognition":
         logger.debug("Performing face recognition on image")
