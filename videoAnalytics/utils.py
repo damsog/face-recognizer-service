@@ -29,26 +29,37 @@ def find_match(vector, stored_vectors, thresh = 0.5):
     matches = np.where(similarity>thresh, True, False)
     return matches
 
-def true_match(data, stored_data,nnames, unames, thresh = 0.4):
-    
-    names = nnames.copy()
-    names.remove('Uknown')
-    matches_t = find_match(data, stored_data, thresh)
+# This function is used to compare the embeddings of the face against the stored embeddings.
+# After comparing them, we return the label of the person that has the highest similarity, if any.
+# Each row of embeddings corresponds to an incoming embedding (i.e. each face)
+def true_match(embeddings, stored_embeddings,labels, unique_labels, thresh = 0.4):
+    # We create an array of zeros to store the number of times each label appears in the embedding_matches array
+    # Each row corresponds to an incoming embedding (i.e. each face) and each column corresponds to a label
+    # The first column corresponds to the label 'Unknown', later, for each label, we add a column
+    labels_count = np.zeros( (embeddings.shape[0], 1) , dtype=int)
 
-    names = np.asarray(names)
-    #unique_names = np.unique(names)
-    unique_names = unames
-    t_match = np.ones( (matches_t.shape[0], 1) )
+    # Getting the embeddings that match with the stored embeddings. we obtain an array of booleans
+    embedding_matches = find_match(embeddings, stored_embeddings, thresh)
 
-    for name in unique_names:
-        un_ind = np.where(names == name)[0]
-        nmax,nmin = np.max(un_ind),np.min(un_ind)
-        name_matches = matches_t[:,nmin:nmax + 1]
-        t_match = np.column_stack(( t_match,np.sum(name_matches,axis=1)[:,None]))
-    
-    r_match = np.argmax(t_match, axis= 1)
+    labels = np.asarray(labels)
 
-    return r_match
+    # We need to count how many times each label appears in the embedding_matches array
+    # We iterate over each unique label, but not the unknown label which will only matter if every label sums 0
+    for name in unique_labels:
+        # Slice the embedding_matches for the subarray region corresponding to the name
+        name_limits = np.where(labels == name)[0]
+        # We decrease the limits by 1 because the labels contain the unknown label as the first element
+        upper_name_limits,lower_name_limits = np.max(name_limits) - 1,np.min(name_limits) - 1
+        embedding_matches_name = embedding_matches[:,lower_name_limits:upper_name_limits + 1]
+        
+        # Count how many times the name appears (its true) in the embedding_matches_name array
+        # This already counts for each incoming embedding (i.e. each face)
+        labels_count = np.column_stack(( labels_count,np.sum(embedding_matches_name,axis=1)[:,None]))
+
+    # We get the index of the label that appears the most times in the embedding_matches array
+    label_match = np.argmax(labels_count, axis= 1)
+
+    return label_match
 
 def scaller_dist(img):
     dim = (112,112)
