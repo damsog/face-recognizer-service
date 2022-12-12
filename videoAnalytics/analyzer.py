@@ -42,8 +42,14 @@ class faceAnalyzer:
     # this method reads the json which containes the codes for a dataset and
     # puts information on a list to be used by the analyzer
     def parse_dataset_json(self, dataset_path):
-        with open(dataset_path) as f:
-            dataset = json.load(f)
+        # Reading Dataset embeddings
+        # If the dataset is a string, then it is a path to a json file
+        if(isinstance(dataset_path, str)):
+            with open(dataset_path) as f:
+                dataset = json.load(f)
+        # If not, then it is a list with the dataset
+        else:
+            dataset = dataset_path
 
         embeddings_array = np.zeros( (1,512) )
         names_list = []
@@ -149,7 +155,7 @@ class faceAnalyzer:
                 
                 # Generating final output. iterating through the faces and getting their info
                 for indx, (bbox, landmark) in enumerate(zip(bboxs, landmarks)):
-                    face_json = { "label" : self.labels[matches[indx]], "bbox" : bbox }
+                    face_json = { "label" : self.labels[matches[indx]], "bbox" : bbox.tolist() }
                     if return_landmarks:
                         face_json["landmarks"] = landmark
                     cv2.putText(img, self.labels[matches[indx]], (int(bbox[0]),int(bbox[1])),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
