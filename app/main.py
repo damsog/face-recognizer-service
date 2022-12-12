@@ -9,7 +9,7 @@ from app.configurations.information import *
 from aiortc.contrib.media import MediaRelay
 from videoAnalytics.processor import processor
 
-from app.controllers import detectionController
+from app.controllers import detectionController, recognitionController
 from app.controllers import encoderController
 
 def create_app():
@@ -24,6 +24,7 @@ def create_app():
     # Set the routes
     app.include_router(encoderController.router)
     app.include_router(detectionController.router)
+    app.include_router(recognitionController.router)
 
     # Set the startup and shutdown events. and Global variables
     # Load the processor
