@@ -19,8 +19,7 @@ RUN virtualenv $VIRTUAL_ENV --python=python3.7
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN python3.7 -m pip install --upgrade pip
-RUN python3.7 -m pip install -r requirements.txt
-
+RUN python3.7 -m pip install -r requirements.txt --default-timeout=100
 RUN mkdir ~/.insightface/ && mkdir ~/.insightface/models/ && mkdir ~/.insightface/models/retinaface_r50_v1/
 RUN python models_downloader.py
 RUN sleep 10
@@ -34,4 +33,4 @@ RUN mv R50-0000.params R50-symbol.json ~/.insightface/models/retinaface_r50_v1/
 
 EXPOSE 6000
 
-CMD [ "python" , "app.py" ]
+CMD [ "python" , "run.py" ]

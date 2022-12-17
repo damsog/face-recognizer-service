@@ -13,7 +13,7 @@ Both on Single images and video feed. 🚀
 
 """
 
-version = "1.0.0"
+version = "1.1.0"
 
 contact = {
         "name": "Felipe Serna",

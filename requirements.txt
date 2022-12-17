@@ -18,3 +18,4 @@ fastapi
 uvicorn
 python-multipart
 typing_extensions
+gdown
