@@ -22,3 +22,17 @@ async def detect(request: Request, response: Response, file: UploadFile = File(.
     except Exception as e:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"error": str(e)}
+
+@router.post("/stream")
+async def recognize_stream(request: Request, response: Response, pc: PeerConnectionDTO, dataset: UploadFile = File(...) ):
+    try:
+        result = await RecognitionService.recognize_stream(request.app.state.processor, 
+                                                    request.app.state.pcs, 
+                                                    request.app.state.relay, 
+                                                    pc.sdp, 
+                                                    pc.sdp_type,
+                                                    dataset)
+        return result
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"error": str(e)}
