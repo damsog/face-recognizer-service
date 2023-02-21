@@ -88,14 +88,15 @@ the flag ```-p``` prints the faces bounding box on the terminal if you want more
 ```sh
 python videoAnalytics/processor.py detection -i <img> -s -dd 0 -p
 ```
-To test on a live video use the flag ```-t```.
+To test on a live video use the flag ```-t```. NOTE: don't use the ```-s``` together with ```-t```
 ```sh
 python videoAnalytics/processor.py detection -t -dd 0
 ```
 
 #### *Recognition*
 For recognition you need to have a dataset with the coders of faces grouped and labeled by person in json format.
-The dataset file should have the following format
+The dataset file should have the following format:
+*dataset*
 ```json
 [
     [
@@ -116,20 +117,22 @@ The dataset file should have the following format
     ...
 ]
 ```
+
+Once we have our dataset containing the codes for each face image for each person we can use recognition.
 ```sh
-python videoAnalytics/processor.py detection -i <img> -s
+python videoAnalytics/processor.py recognition -i <img> -d <dataset> -s
 ```
-the flag ```-s``` displays the image using opencv. you can add the flags ```-dd [0-N]``` to specify the device to run on (by default -1 for cpu, 0 to N for GPU)
+the flag ```-s``` displays the image using opencv. you can add the flags ```-dd [0-N]``` to specify the device to run detection on and ```-rd [0-N]``` for recognition (by default -1 for cpu, 0 to N for GPU)
 ```sh
-python videoAnalytics/processor.py detection -i <img> -s -dd 0
+python videoAnalytics/processor.py recognition -i <img> -d <dataset> -s -dd 0 -rd 0
 ```
 the flag ```-p``` prints the faces bounding box on the terminal if you want more information.
 ```sh
-python videoAnalytics/processor.py detection -i <img> -s -dd 0 -p
+python videoAnalytics/processor.py recognition -i <img> -d <dataset> -s -dd 0 -rd 0 -p
 ```
-To test on a live video use the flag ```-t```.
+To test on a live video use the flag ```-t```. NOTE: don't use the ```-s``` together with ```-t```
 ```sh
-python videoAnalytics/processor.py detection -t -dd 0
+python videoAnalytics/processor.py recognition -t -d <dataset> -dd 0 -rd 0
 ```
 
 #### *Recognition*
