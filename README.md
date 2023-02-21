@@ -92,10 +92,41 @@ To test on a live video use the flag ```-t```. NOTE: don't use the ```-s``` toge
 ```sh
 python videoAnalytics/processor.py detection -t -dd 0
 ```
+#### *Encoder*
+Before using the recognizer we have to generate a database where to keep the codes of refference so the system can compare and label correctly. The encoder helps us to
+extract the information for the people to use as a base and generate a database.
+You can tell the encoder the input images using the flag ```-i``` and specifying the label of the person and the path to the images in a json format:
+```sh
+python videoAnalytics/encoder.py -i '{"person1":["path1.jpg","path2.jpg",...], "person2":[...], "person3":[...], ... }'
+```
+An example with 2 people and 2 images each:
+```sh
+python videoAnalytics/encoder.py -i '{"person1":["person1_1.jpg","person1_2.jpg"], "person2":["person2_1.jpg","person2_2.jpg"]}'
+```
+to save the output use ```-o <output>```.
+```sh
+python videoAnalytics/encoder.py -i '{"person1":["person1_1.jpg","person1_2.jpg"], "person2":["person2_1.jpg","person2_2.jpg"]}' -o <output>
+```
+Alternatively, you can use the flag ```-p``` to specify a location containing the images. they should be organized in a general folder which contains a folder for each person.
+each person folder should have the label of the person (it's name) and inside there should be the face images for that person:
+```
+data/
+    |_person1
+            |_person1_1.jpg
+            |_person1_2.jpg
+            ...
+    |_person2
+            |_person2_1.jpg
+            ...
+    |_person3
+            ...
+    ...
+```
+```sh
+python videoAnalytics/encoder.py -p <path-data> -o <output>
+```
+Either way, the output dataset should have the following structure:
 
-#### *Recognition*
-For recognition you need to have a dataset with the coders of faces grouped and labeled by person in json format.
-The dataset file should have the following format:
 *dataset*
 ```json
 [
@@ -117,6 +148,9 @@ The dataset file should have the following format:
     ...
 ]
 ```
+
+#### *Recognition*
+For recognition you need to have a dataset with the coders of faces grouped and labeled by person in json format. use the encoder to generate the dataset as explained in the previous section.
 
 Once we have our dataset containing the codes for each face image for each person we can use recognition.
 ```sh
