@@ -98,7 +98,7 @@ docker logs --tail N <container_id>
 ```
 You can check out the endpoints on ```http://localhost:<host-port>/docs```
 
-<img>
+![image](https://user-images.githubusercontent.com/46113808/220405197-3dc861ca-c1df-440e-852f-49e62b3547da.png)
 
 Encoder: takes one or multiple images with faces and generates an array that represents each face uniquely.
 codes for faces of a person are very simmilar  between them (through vectorial distance) and very different from codes from other people.
