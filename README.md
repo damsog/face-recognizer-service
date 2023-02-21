@@ -1,12 +1,11 @@
 # Face Recognizer Service
 
-Face Detection and Recognition Module.
+Face Detection and Recognition Module. can be used to detect faces and apply recognition on images and videos. <br>
+it can be used from CLI, imported as a module or run as an API for another application. <br>
+It's basically an interface using [Insightface 0.1.5](https://github.com/deepinsight/insightface) backend models for detection and recognition.
 
-This service can be used to run a Face Detection Algorithm, or a Face Recognition Algorithm. Both can run on a single image or on a live video.
-
-This module can be deployed as a stand alone app or as an API service.
-This service can be used as a standalone app, but it was made to be deployed together with the main videoanaltytics server <br>
-[Video-Analytics Server](https://github.com/damsog/gnosis-main-service)
+This module was made to be deployed together with the main videoanaltytics server [Video-Analytics Server](https://github.com/damsog/gnosis-main-service)
+However, Can also be used as a standalone app, continue reading to learn how.
 
 
 ## :clipboard: Requirements
@@ -93,8 +92,8 @@ To test on a live video use the flag ```-t```. NOTE: don't use the ```-s``` toge
 python videoAnalytics/processor.py detection -t -dd 0
 ```
 #### :memo: *Encoder*
-Before using the recognizer we have to generate a database where to keep the codes of refference so the system can compare and label correctly. The encoder helps us to
-extract the information for the people to use as a base and generate a database.
+Before using the recognizer we have to generate a database where to keep the codes of faces and people that the system will use as refference to then apply on images or videos and label them correctly. <br>
+To extract the code for a set of faces we can use the encoder module. <br>
 You can tell the encoder the input images using the flag ```-i``` and specifying the label of the person and the path to the images in a json format:
 ```sh
 python videoAnalytics/encoder.py -i '{"person1":["path1.jpg","path2.jpg",...], "person2":[...], "person3":[...], ... }'
