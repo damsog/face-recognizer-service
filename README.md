@@ -70,7 +70,71 @@ pull it
 ```sh
 docker pull laguzs/gnosis_recognizer_service
 ```
-## :white_check_mark: Deploy Service 
+
+## :white_check_mark: Run on cli
+
+You can just use the system on your terminal with the following commands (be sure to have activated the venv:  ```source /path/to/venv/bin/activate```)
+
+#### *Detection*
+To find faces on an image you can run:
+```sh
+python videoAnalytics/processor.py detection -i <img> -s
+```
+the flag ```-s``` displays the image using opencv. you can add the flags ```-dd [0-N]``` to specify the device to run on (by default -1 for cpu, 0 to N for GPU)
+```sh
+python videoAnalytics/processor.py detection -i <img> -s -dd 0
+```
+the flag ```-p``` prints the faces bounding box on the terminal if you want more information.
+```sh
+python videoAnalytics/processor.py detection -i <img> -s -dd 0 -p
+```
+To test on a live video use the flag ```-t```.
+```sh
+python videoAnalytics/processor.py detection -t -dd 0
+```
+
+#### *Recognition*
+For recognition you need to have a dataset with the coders of faces grouped and labeled by person in json format.
+The dataset file should have the following format
+```json
+[
+    [
+        "person1",
+        "0.2681454,0.9309953,-0.98818445,1.1641849...."
+    ],
+    [
+        "person1",
+        "2.291303,0.9101235,-0.6601216,0.14975247....."
+    ],
+    [
+        "person2",
+        "-1.9095982,-0.6114771,0.49495777,-1.1133002..."
+    ],
+    [
+        "..."
+    ]
+    ...
+]
+```
+```sh
+python videoAnalytics/processor.py detection -i <img> -s
+```
+the flag ```-s``` displays the image using opencv. you can add the flags ```-dd [0-N]``` to specify the device to run on (by default -1 for cpu, 0 to N for GPU)
+```sh
+python videoAnalytics/processor.py detection -i <img> -s -dd 0
+```
+the flag ```-p``` prints the faces bounding box on the terminal if you want more information.
+```sh
+python videoAnalytics/processor.py detection -i <img> -s -dd 0 -p
+```
+To test on a live video use the flag ```-t```.
+```sh
+python videoAnalytics/processor.py detection -t -dd 0
+```
+
+#### *Recognition*
+
+## :white_check_mark: Deploy API Service 
 
 Before deploying the service you have to set up the environment variables. create a file called .env and copy the content from .base.env
 ```sh
