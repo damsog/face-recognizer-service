@@ -6,7 +6,7 @@ This service can be used to run a Face Detection Algorithm, or a Face Recognitio
 
 This module can be deployed as a stand alone app or as an API service.
 This service can be used as a standalone app, but it was made to be deployed together with the main videoanaltytics server <br>
-[Video-Analytics Server](https://github.com/damsog/video-analytics-server)
+[Video-Analytics Server](https://github.com/damsog/gnosis-main-service)
 
 
 ## Requirements
@@ -68,7 +68,7 @@ docker build -t <img-name>:<tag> .
 #### *Docker (Use the built container)*
 pull it
 ```sh
-docker pull laguzs/gnosis_recognizer_service .
+docker pull laguzs/gnosis_recognizer_service
 ```
 ## Deploy Service 
 
