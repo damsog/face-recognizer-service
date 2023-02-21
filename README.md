@@ -9,20 +9,20 @@ This service can be used as a standalone app, but it was made to be deployed tog
 [Video-Analytics Server](https://github.com/damsog/gnosis-main-service)
 
 
-## Requirements
+## :clipboard: Requirements
 The python dependencies can be installed using the install script or with docker. just make sure to set up th gpu with cuda and cudnn.
 
-##### Python Dependencies
+##### :snake: Python Dependencies
 - [Python 3.7](https://www.python.org/downloads/release/python-370/). Python should be >=3.7. this is due to flask async support.
 - [Insightface 0.1.5](https://github.com/deepinsight/insightface) (Python Lib for Face Det and Face Rek)
 - [mxnet-cu102](https://mxnet.apache.org/versions/1.7.0/get_started?platform=linux&language=python&processor=gpu&environ=pip&) could only make it work with this version of mxnet.
 - [Virtualenv](https://pypi.org/project/virtualenv/)
-##### Other Dependencies
+##### :penguin: Other Dependencies
 - Nvidia GPU with [CUDA 10.2](https://developer.nvidia.com/cuda-10.2-download-archive) and [CuDNN](https://developer.nvidia.com/rdp/cudnn-archive) for CUDA 10.2 (It's the version I could made it work with. had to balance Insightface, mxnet and cuda versions and compatibility)
 - [Docker](https://docs.docker.com/engine/install/ubuntu/) (Opcional)
 
 
-## Set Up (Linux)
+## :wrench: Set Up (Linux)
 
 ### *Set Up Nvidia GPU*
 
@@ -58,7 +58,7 @@ the models for this version should be downloaded manually from :<br>
 and then place them manually on ```~/.insightface/models```
 
 Alternatively you can just build the image or pull it directly from docker hub
-#### *Docker (Build the image Container)*
+#### :whale: *Docker (Build the image Container)*
 
 To build the image just open the terminal on the project directory and run the following command
 ```sh
@@ -70,7 +70,7 @@ pull it
 ```sh
 docker pull laguzs/gnosis_recognizer_service
 ```
-## Deploy Service 
+## :white_check_mark: Deploy Service 
 
 Before deploying the service you have to set up the environment variables. create a file called .env and copy the content from .base.env
 ```sh
@@ -101,7 +101,7 @@ SERVER_SSL_CONTEXT=<context>
 SERVER_SSL_KEYFILE=<keyfile>
 ```
 
-### *Deploy from terminal*
+### :penguin: *Deploy from terminal*
 
 To deploy the service first activate the virtualenv
 ```sh
@@ -115,7 +115,7 @@ or just:
 ```sh
 make run
 ```
-### *Deploy as Container*
+### :whale2: *Deploy as Container*
 
 Run Docker container. use --gpus all for gpu support, or remove it to run on without gpu
 
