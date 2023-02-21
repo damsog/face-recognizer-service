@@ -171,7 +171,7 @@ python videoAnalytics/processor.py recognition -t -d <dataset> -dd 0 -rd 0
 
 #### *Recognition*
 
-## :white_check_mark: Deploy API Service 
+## :white_check_mark: Run API Service 
 
 Before deploying the service you have to set up the environment variables. create a file called .env and copy the content from .base.env
 ```sh
@@ -202,7 +202,7 @@ SERVER_SSL_CONTEXT=<context>
 SERVER_SSL_KEYFILE=<keyfile>
 ```
 
-### :penguin: *Deploy from terminal*
+### :penguin: *Run from terminal*
 
 To deploy the service first activate the virtualenv
 ```sh
@@ -216,7 +216,7 @@ or just:
 ```sh
 make run
 ```
-### :whale2: *Deploy as Container*
+### :whale2: *Run as Container*
 
 Run Docker container. use --gpus all for gpu support, or remove it to run on without gpu
 
