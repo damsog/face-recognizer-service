@@ -71,11 +71,11 @@ pull it
 docker pull laguzs/gnosis_recognizer_service
 ```
 
-## :white_check_mark: Run on cli
+## :computer: Run on cli
 
 You can just use the system on your terminal with the following commands (be sure to have activated the venv:  ```source /path/to/venv/bin/activate```)
 
-#### *Detection*
+#### :suspect: *Detection*
 To find faces on an image you can run:
 ```sh
 python videoAnalytics/processor.py detection -i <img> -s
@@ -92,7 +92,7 @@ To test on a live video use the flag ```-t```. NOTE: don't use the ```-s``` toge
 ```sh
 python videoAnalytics/processor.py detection -t -dd 0
 ```
-#### *Encoder*
+#### :memo: *Encoder*
 Before using the recognizer we have to generate a database where to keep the codes of refference so the system can compare and label correctly. The encoder helps us to
 extract the information for the people to use as a base and generate a database.
 You can tell the encoder the input images using the flag ```-i``` and specifying the label of the person and the path to the images in a json format:
@@ -127,7 +127,7 @@ python videoAnalytics/encoder.py -p <path-data> -o <output>
 ```
 Either way, the output dataset should have the following structure:
 
-*dataset*
+*dataset.json*
 ```json
 [
     [
@@ -149,7 +149,7 @@ Either way, the output dataset should have the following structure:
 ]
 ```
 
-#### *Recognition*
+#### :hurtrealbad: *Recognition*
 For recognition you need to have a dataset with the coders of faces grouped and labeled by person in json format. use the encoder to generate the dataset as explained in the previous section.
 
 Once we have our dataset containing the codes for each face image for each person we can use recognition.
