@@ -76,13 +76,17 @@ class processor:
             return result
 
     # TODO: Work on video feed to frontend
-    def analyze_video(self, dataset_path, video_source, return_img=False, return_landmarks=False, return_img_json=False, show_video=False):
+    def analyze_video(self, dataset_path, video_source, return_img=False, return_landmarks=False, return_img_json=False, show_video=False, print_output=False, logger=None):
         self.set_analyzer_dataset(dataset_path)
         cap = cv2.VideoCapture(video_source)
 
+        img_id = 0
         while cap.isOpened():
             ret, img_read = cap.read()
             result,img = self.analyzer.analyze_img(img_read, True, return_landmarks, return_img_json)
+            if print_output and logger:
+                logger.info(f'frame_{img_id}: {result}')
+            img_id += 1
 
             if show_video:
                 cv2.namedWindow('Frame')
@@ -93,12 +97,16 @@ class processor:
                     break
     
     # TODO: Work on video feed to frontend
-    def detect_video(self, video_source, return_img=False, return_landmarks=False, return_img_json=False, show_video=False):
+    def detect_video(self, video_source, return_img=False, return_landmarks=False, return_img_json=False, show_video=False, print_output=False, logger=None):
         cap = cv2.VideoCapture(video_source)
 
+        img_id = 0
         while cap.isOpened():
             ret, img_read = cap.read()
             result,img = self.analyzer.detect_img(img_read, True, return_landmarks, return_img_json)
+            if print_output and logger:
+                logger.info(f'frame_{img_id}: {result}')
+            img_id += 1
 
             if show_video:
                 cv2.namedWindow('Frame')
@@ -120,8 +128,9 @@ def main() -> None:
     ap.add_argument("-t", "--video_test", action="store_true", help="If selected, opens camera to live test")
     ap.add_argument("-v", "--verbose", action="store_true", help="Debug level for logger output")
     ap.add_argument("-s", "--show_img", action="store_true", help="Shows image output")
-    ap.add_argument("-dc", "--det-cpu", action="store_true", help="use cpu for detection")
-    ap.add_argument("-rc", "--rek-cpu", action="store_true", help="use cpu for recognition")
+    ap.add_argument("-p", "--print_output", action="store_true", help="Prints output to console")
+    ap.add_argument("-dd", "--det-dev", required=False, help="Detection device to use. Default is CPU. -1 for CPU, 0-N for GPU id")
+    ap.add_argument("-rd", "--rek-dev", required=False, help="Recognition device to use. Default is CPU. -1 for CPU, 0-N for GPU id")
     args = vars(ap.parse_args())
 
     # Cool title
@@ -136,9 +145,20 @@ def main() -> None:
         logger = Logger("DEBUG", COLORED=True, TAG_MODULE= MODULE_NAME)
     else:
         logger = Logger("INFO", COLORED=True, TAG_MODULE= MODULE_NAME)
+    
+    def print_output(label: str, result: any):
+        if args['image']: logger.info(f'{args["image"]}: {result}')
 
-    detection_using_cpu = -1 if args["det_cpu"] else 0
-    rekognition_using_cpu = -1 if args["rek_cpu"] else 0
+    # Check if the user provided a valid device id
+    try:
+        detection_using_cpu = int(args["det_dev"]) if args["det_dev"] else -1
+        rekognition_using_cpu = int(args["rek_dev"]) if args["rek_dev"] else -1
+    except ValueError:
+        logger.error("Invalid device id. Must be an integer")
+        sys.exit()
+
+    logger.info("Using CPU for detection") if detection_using_cpu == -1 else logger.info(f"Using GPU {detection_using_cpu} for detection")
+    logger.info("Using CPU for recognition") if rekognition_using_cpu == -1 else logger.info(f"Using GPU {rekognition_using_cpu} for recognition")
 
     if not args["dataset"]:
        if args["type"] == "recognition":
@@ -175,10 +195,6 @@ def main() -> None:
     # python videoAnalytics/processor.py recognition -d 'embeddings.json' -t
     # Image Recognition Example
     # python videoAnalytics/processor.py recognition -i 'img.jpg' -d 'embeddings.json' -s
-    # Image Detection Example
-    # python videoAnalytics/processor.py detection -i 'img.jpg' -s
-    # Video Detection Example
-    # python videoAnalytics/processor.py detection -t
 
     if args["type"] == "recognition":
         logger.debug("Performing face recognition on image")
@@ -186,6 +202,10 @@ def main() -> None:
     else:
         logger.debug("Performing face detection on image")
         result,img = mProcessor.detect_image(input_img, return_img=True)
+
+    if args["print_output"]:
+        logger.info("Printing output to console")
+        if args['image']: print_output(args['image'], result)
 
     if args["show_img"]:
         logger.info("Image processed will be shown")
@@ -196,10 +216,11 @@ def main() -> None:
     # Video Testing if option selected. stop it pressing q
     if args["video_test"]:
         logger.info("Starting video test")
+        print_video_output = True if args["print_output"] else False
         if args["type"] == "recognition":
-            mProcessor.analyze_video(dataset_path, 0, show_video=True)
+            mProcessor.analyze_video(dataset_path, 0, show_video=True, print_output=print_video_output, logger=logger)
         else:
-            mProcessor.detect_video(0, show_video=True )
+            mProcessor.detect_video(0, show_video=True, print_output=print_video_output, logger=logger)
 
 if __name__=="__main__":
     main()
