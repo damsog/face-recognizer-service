@@ -72,6 +72,35 @@ docker pull laguzs/gnosis_recognizer_service .
 ```
 ## Deploy Service 
 
+Before deploying the service you have to set up the environment variables. create a file called .env and copy the content from .base.env
+```sh
+cp .base.env .env
+```
+
+And now edit the .env file
+```
+SERVER_IP=<serveri>
+SERVER_PORT=<port>
+DETECTOR_LOAD_DEVICE=<-1/0/1/..>
+RECOGNIZER_LOAD_DEVICE=<-1/0/1/..>
+SERVER_SSL_CONTEXT=<context>
+SERVER_SSL_KEYFILE=<keyfile>
+LOGGER_LEVEL=<INFO/DEBUG>
+ENV=<development/production>
+```
+
+Some of the variables are self explanatory, server ip and port, logger level for info or debug, env for dev or production. keep the following in mind:
+Device ID for detector and recognizer. -1 for no gpu, 0-N for gpu id (if you have only 1 gpu use 0)
+```
+DETECTOR_LOAD_DEVICE=<-1/0/1/..>
+RECOGNIZER_LOAD_DEVICE=<-1/0/1/..>
+```
+SSL context for https. leave empty for http
+```
+SERVER_SSL_CONTEXT=<context>
+SERVER_SSL_KEYFILE=<keyfile>
+```
+
 ### *Deploy from terminal*
 
 To deploy the service first activate the virtualenv
