@@ -117,10 +117,30 @@ make run
 ```
 ### *Deploy as Container*
 
-Run Docker container
+Run Docker container. use --gpus all for gpu support, or remove it to run on without gpu
+
 ```sh
-docker run --gpus all -p <host-port>:6000 -d laguzs/face_analytics:1.1
+docker run --env-file .env --gpus all -p <host-port>:5000 laguzs/gnosis_recognizer_service:1.1
 ```
+or in detatched mode
+```sh
+docker run --env-file .env --gpus all -p <host-port>:5000 laguzs/gnosis_recognizer_service:1.1
+```
+Or for ease, deploy using the docker compose file
+edit the img name for your specific case. if you want to run on cpu remove or comment the lines 8-12 (deploy) which specifies gpu.
+To run using docker compose
+```sh
+docker compose up
+```
+or in detatched mode
+```sh
+docker compose up -d
+```
+to stop 
+```sh
+docker compose down
+```
+
 Check outputs 
 ```sh
 docker logs --tail N <container_id>
