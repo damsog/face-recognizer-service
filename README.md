@@ -111,7 +111,7 @@ You can also add the flags ```-dd [0-N]``` to specify the device to run detectio
 ```sh
 python videoAnalytics/encoder.py -i <input> -dd 0 -rd 0 -o <output>
 ```
-Alternatively, you can use the flag ```-p``` to specify a location containing the images. they should be organized in a general folder which contains a folder for each person.
+Alternatively, you can use the flag ```-ip``` to specify a location containing the images. they should be organized in a general folder which contains a folder for each person.
 each person folder should have the label of the person (it's name) and inside there should be the face images for that person:
 ```
 data/

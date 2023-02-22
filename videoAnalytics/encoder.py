@@ -1,6 +1,7 @@
 import argparse
 import base64
 import json
+import os
 from typing import List
 from typing_extensions import TypedDict
 import imutils
@@ -154,14 +155,41 @@ class encoderExtractor:
         
         return self.json_output
 
+    @staticmethod
+    def input_path_to_json(input_path: str) -> str:
+        json_data = {}
+
+        # Listing the folders. there are the labels for the images
+        for folder in os.listdir(input_path):
+
+            # ignore files at this level
+            if not os.path.isdir(os.path.join(input_path, folder)):
+                continue
+            
+            # Listing the images for each folder
+            json_data[folder] = []
+            for img_name in os.listdir(os.path.join(input_path, folder)):
+                json_data[folder].append(os.path.join(input_path, folder, img_name))
+        return str(json_data).replace("'", '"')
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--input_data", required=True, help="json containing input data")
+    ap.add_argument("-i", "--input-data", required=False, help="json containing input data")
+    ap.add_argument("-ip", "--input-data-path", required=False, help="Path to a folder containing input data")
     ap.add_argument("-o", "--out", required=False, help="save json containing input data")
     ap.add_argument("-p", "--print", action="store_true", help="Prints output on console")
     ap.add_argument("-dd", "--det-dev", required=False, help="Detection device to use. Default is CPU. -1 for CPU, 0-N for GPU id")
     ap.add_argument("-rd", "--rek-dev", required=False, help="Recognition device to use. Default is CPU. -1 for CPU, 0-N for GPU id")
     args = vars(ap.parse_args())
+
+    if not args["input_data"] and not args["input_data_path"]:
+        print("Please provide input data or input data path")
+        sys.exit()
+
+    # If the user provided a path to a folder containing the input data, convert it to json format
+    if args["input_data_path"]:
+        args["input_data"] = encoderExtractor.input_path_to_json(args["input_data_path"])
+        print(args["input_data"])
 
     # Check if the user provided a valid device id
     try:
