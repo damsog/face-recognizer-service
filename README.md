@@ -16,6 +16,7 @@ The python dependencies can be installed using the install script or with docker
 - [Insightface 0.1.5](https://github.com/deepinsight/insightface) (Python Lib for Face Det and Face Rek)
 - [mxnet-cu102](https://mxnet.apache.org/versions/1.7.0/get_started?platform=linux&language=python&processor=gpu&environ=pip&) could only make it work with this version of mxnet.
 - [Virtualenv](https://pypi.org/project/virtualenv/)
+- [FastAPI](https://fastapi.tiangolo.com/)
 ##### :penguin: Other Dependencies
 - Nvidia GPU with [CUDA 10.2](https://developer.nvidia.com/cuda-10.2-download-archive) and [CuDNN](https://developer.nvidia.com/rdp/cudnn-archive) for CUDA 10.2 (It's the version I could made it work with. had to balance Insightface, mxnet and cuda versions and compatibility)
 - [Docker](https://docs.docker.com/engine/install/ubuntu/) (Opcional)
@@ -104,7 +105,11 @@ python videoAnalytics/encoder.py -i '{"person1":["person1_1.jpg","person1_2.jpg"
 ```
 to save the output use ```-o <output>```.
 ```sh
-python videoAnalytics/encoder.py -i '{"person1":["person1_1.jpg","person1_2.jpg"], "person2":["person2_1.jpg","person2_2.jpg"]}' -o <output>
+python videoAnalytics/encoder.py -i <input> -o <output>
+```
+You can also add the flags ```-dd [0-N]``` to specify the device to run detection on and ```-rd [0-N]``` for recognition (by default -1 for cpu, 0 to N for GPU)
+```sh
+python videoAnalytics/encoder.py -i <input> -dd 0 -rd 0 -o <output>
 ```
 Alternatively, you can use the flag ```-p``` to specify a location containing the images. they should be organized in a general folder which contains a folder for each person.
 each person folder should have the label of the person (it's name) and inside there should be the face images for that person:

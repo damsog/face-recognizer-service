@@ -159,12 +159,21 @@ def main() -> None:
     ap.add_argument("-i", "--input_data", required=True, help="json containing input data")
     ap.add_argument("-o", "--out", required=False, help="save json containing input data")
     ap.add_argument("-p", "--print", action="store_true", help="Prints output on console")
-    ap.add_argument("-dc", "--det-cpu", action="store_true", help="use cpu for detection")
-    ap.add_argument("-rc", "--rek-cpu", action="store_true", help="use cpu for recognition")
+    ap.add_argument("-dd", "--det-dev", required=False, help="Detection device to use. Default is CPU. -1 for CPU, 0-N for GPU id")
+    ap.add_argument("-rd", "--rek-dev", required=False, help="Recognition device to use. Default is CPU. -1 for CPU, 0-N for GPU id")
     args = vars(ap.parse_args())
 
-    detection_using_cpu = -1 if args["det_cpu"] else 0
-    rekognition_using_cpu = -1 if args["rek_cpu"] else 0
+    # Check if the user provided a valid device id
+    try:
+        detection_using_cpu = int(args["det_dev"]) if args["det_dev"] else -1
+        rekognition_using_cpu = int(args["rek_dev"]) if args["rek_dev"] else -1
+    except ValueError:
+        print("Invalid device id. Must be an integer")
+        sys.exit()
+
+    print("Using CPU for detection") if detection_using_cpu == -1 else print(f"Using GPU {detection_using_cpu} for detection")
+    print("Using CPU for recognition") if rekognition_using_cpu == -1 else print(f"Using GPU {rekognition_using_cpu} for recognition")
+
     input_data = args['input_data']
     #input_data = '{"name":"what", "img_format": "route","imgs":["imgs/felipe1.jpg","imgs/felipe7.jpg"]}'
     #input_data = '{"felipe":["imgs/felipe/felipe1.jpg","imgs/felipe/felipe7.jpg"], "vincent":["imgs/vincent/00000002.jpg","imgs/vincent/00000024.jpg"]}'
