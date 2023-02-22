@@ -75,6 +75,52 @@ docker pull laguzs/gnosis_recognizer_service
 
 You can just use the system on your terminal with the following commands (be sure to have activated the venv:  ```source /path/to/venv/bin/activate```)
 
+#### :memo: *TLDR for running on CLI*
+
+If you are lazy, here is a summary to run on cli before going into more detail.
+
+Use face detection with 
+```sh
+python videoAnalytics/processor.py detection -i <img> -s
+```
+
+change ```-i``` for ```-t``` and remove ```-s``` to test on video. also add ```-dd 0``` to run on gpu instead of cpu.
+
+For recognition you need a dataset of codes of the people to identify. gather images of faces for each person or use the capture script as follows:
+```sh
+python videoAnalytics/capture.py -p <dataset-path>
+```
+Enter the person name and press "s" to save each image. press "n" to go to the next person or "q" to quit.
+
+You will get a folder like this.
+```
+data/
+    |_person1
+            |_person1_1.jpg
+            |_person1_2.jpg
+            ...
+    |_person2
+            |_person2_1.jpg
+            ...
+    |_person3
+            ...
+    ...
+```
+Now to encode the images. use ```-dd 0 -rd 0``` to run on gpu instead of cpu.:
+```sh
+python videoAnalytics/encoder.py -i <dataset-path> -o <output>
+```
+You will get a json file containing the codes for each face image.
+
+Use face recognition with 
+```sh
+python videoAnalytics/processor.py detection -i <img> -s -d <dataset-json>
+```
+
+change ```-i``` for ```-t``` and remove ```-s``` to test on video. also add ```-dd 0 -rd 0``` to run on gpu instead of cpu.
+
+If you want more detail continue reading the next sections.
+
 #### :suspect: *Detection*
 To find faces on an image you can run:
 ```sh
@@ -94,7 +140,7 @@ python videoAnalytics/processor.py detection -t -dd 0
 ```
 #### :memo: *Encoder*
 Before using the recognizer we have to generate a database where to keep the codes of faces and people that the system will use as refference to then apply on images or videos and label them correctly. <br>
-To extract the code for a set of faces we can use the encoder module. <br>
+To extract the code for a set of faces we can use the encoder module. (If you don't have a dataset of images refer to the next section to create one for testing using the capture.py script)<br>
 You can tell the encoder the input images using the flag ```-i``` and specifying the label of the person and the path to the images in a json format:
 ```sh
 python videoAnalytics/encoder.py -i '{"person1":["path1.jpg","path2.jpg",...], "person2":[...], "person3":[...], ... }'
@@ -160,7 +206,7 @@ This script starts a live video feed using opencv where you can then capture ima
 ```sh
 python videoAnalytics/capture.py -p <dataset-path>
 ```
-then, the cli will ask for the name of the person to register and will save the images to that folder (The script creates the folder if they don't exist).
+then, the cli will ask for the name of the person to register and will save the images to that folder (The script creates the folders if they don't exist).
 just type "s" whenever you want to save an image. The script will save the image to the person folder with an unique id so the images won't be replaced if you want to add more images later. <br>
 If you are done with one person you can type "n" to add someone else or type "q" to quit the application.<br>
 You can also type "g" to toggle gamma correction, which can improve lighting in certain situations. <br>
@@ -186,8 +232,6 @@ To test on a live video use the flag ```-t```. NOTE: don't use the ```-s``` toge
 ```sh
 python videoAnalytics/processor.py recognition -t -d <dataset> -dd 0 -rd 0
 ```
-
-#### *Recognition*
 
 ## :white_check_mark: Run API Service 
 
