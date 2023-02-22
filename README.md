@@ -153,6 +153,20 @@ Either way, the output dataset should have the following structure:
 ]
 ```
 
+#### :camera: *Capture*
+
+If you are lazy to gather images, or simply want to quickly test the system you can use the capture.py script. <br>
+This script starts a live video feed using opencv where you can then capture images from that video feed. Just provide the dataset path using the ```-p``` flag.
+```sh
+python videoAnalytics/capture.py -p <dataset-path>
+```
+then, the cli will ask for the name of the person to register and will save the images to that folder (The script creates the folder if they don't exist).
+just type "s" whenever you want to save an image. The script will save the image to the person folder with an unique id so the images won't be replaced if you want to add more images later. <br>
+If you are done with one person you can type "n" to add someone else or type "q" to quit the application.<br>
+You can also type "g" to toggle gamma correction, which can improve lighting in certain situations. <br>
+<br>
+Using this script you can swiftly create a test dataset of images which you can then use to create the json dataset and then use the face recognizer.
+
 #### :hurtrealbad: *Recognition*
 For recognition you need to have a dataset with the coders of faces grouped and labeled by person in json format. use the encoder to generate the dataset as explained in the previous section.
 
